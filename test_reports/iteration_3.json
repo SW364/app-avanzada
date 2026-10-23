@@ -1,0 +1,27 @@
+{
+  "summary": "Focused swipe/drag regression on DragCarousel (rewritten to snapping horizontal Animated.ScrollView). Verified on mobile viewport 390x844. Carousel is NO LONGER STUCK on the first option: it moves via native scroll (touch-drag on real devices + mouse-wheel/programmatic scroll on web preview), snaps to each item, fires onChange(i) correctly, and tap-to-select on every item still works. End-to-end scroll-to-last works for all 4 modules; the last option/subject becomes centered (bold inside frame) and option-formula updates (bat-m1a 'Will…'->'Going to + be able to + Verbo'; bat-m2a 'Present…'->'Has / Have been + able to + Verbo'; pv-m1a 'Can…'->'Must + be + Pasado Participio' (last reachable); pv-m2a 'Present…'->'Has / Have been + Pasado Participio'). After scrolling both carousels to end on bat-m1a and tapping Generar, sentence-affirmative correctly reads 'They are going to be able to cut.' with ref-affirmative 'Ellos van a ser capaces de cortar.'. Tap-regression: tapping subject-they then option-should on bat-m1a and Generar yields 'They should be able to cut.' / 'Ellos deberían ser capaces de cortar.' exactly as required. Verb modal regression (verb-selector-button, tab-regular/tab-irregular, verb-search 'break', verb-option-break) works and updates selected-verb to 'Break'.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_3.json"],
+  "action_items": [
+    "Optional UX enhancement: desktop web mouse-drag does not scroll an overflow:auto ScrollView (standard browser behavior). On real mobile devices (and Expo Go) touch-drag works natively because the DragCarousel now uses Animated.ScrollView + snapToInterval + decelerationRate='fast' + disableIntervalMomentum. If you want desktop click-and-drag support, add a small pointerdown/pointermove handler that mutates scrollLeft while dragging (otherwise mouse wheel + tap already fully cover the desktop case).",
+    "Minor: pressing back-button on a direct deep link (no history) shows a transient 'The action GO_BACK was not handled' toast. Consider router.canGoBack() check and fallback to router.replace('/') (not blocking)."
+  ],
+  "critical_code_review_comments": [
+    "DragCarousel.tsx (snapping Animated.ScrollView): sidePad centers items in the frame; snapToInterval=stride (itemWidth+GAP); decelerationRate='fast'; disableIntervalMomentum keeps one-item-per-swipe; onEndDrag/onMomentumEnd + debounced settle on web all correctly compute i=round(x/stride) and clamp to [0, data.length-1]; onChange only fires when index actually changes (ref-guard). Pressable per item preserves tap-to-select with itemTestID.",
+    "No deprecated expo packages (expo-haptics, expo-linear-gradient, expo-router, react-native-keyboard-controller).",
+    "practice/[id].tsx correctly derives options (modal vs chapter) from MODULES[practice.module] and wires DragCarousel for both subj and opt with distinct testIDs (carousel-subject, carousel-option, subject-{key}, option-{key})."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend only)", "frontend": "100% on carousel swipe/drag + tap + regression (bat-m1a scroll-to-end -> 'They are going to be able to cut.'; bat-m1a tap should -> 'They should be able to cut.'; verb modal + search + irregular tab OK)"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mobile viewport 390x844. DragCarousel is now a snapping horizontal Animated.ScrollView (RNW maps to a div with overflow-x:auto whose [data-testid='carousel-{subject|option}'] attribute is on the scrollable div itself). To drive it in Playwright use ANY of: (a) tap items by data-testid (subject-{i|you|he|she|it|we|they}, option-{key}), (b) mouse-wheel on the carousel: page.mouse.move(cx,cy); page.mouse.wheel(dx, 0), (c) programmatic scroll: el.scrollBy({left: stride, behavior:'instant'}) then el.dispatchEvent(new Event('scroll',{bubbles:true})) and wait ~300ms per step (settleWeb debounces 120ms). DO NOT rely on page.mouse.down/move/up over overflow:auto divs — browsers do not auto-scroll on mouse-drag; and DO NOT rely on page.touchscreen (hasTouch is false in default context). strides: option stride=itemWidth+12 (modal=104+12=116, chapter=130+12=142), subject stride=78+12=90. Last modal for bat-m1a is 'goingTo' (sentence 'They are going to be able to cut.'); last chapter for pv-/bat-m2a is 'pastPerfect'. Sentences only mutate on generate-button press.",
+  "rca_of_issue": "User-reported bug ('carrusel está roto, no se mueve de la primera opción') is RESOLVED. Root cause of original issue: previous DragCarousel used react-native-gesture-handler Gesture.Pan which is incompatible with RNGH v3 setup used by this project (gesture didn't fire on web/mobile). Fix in place now uses an Animated.ScrollView with snapToInterval + decelerationRate='fast' + onScroll handler that calls settle() with Math.round(x/stride) to update index. Verified: option scroll from 0 reaches each successive option-formula ('Will'->'Must'->'Should'->'Would'->'Might'->'May'->'Shall'->'Gonna'->'Wanna'->'Going to' on bat-m1a); subject scroll reaches 'They'; onChange(i) correctly updates React state so option-formula and sentence-affirmative recompute on Generar. No regressions in verb modal, tabs, search or back navigation (except the known deep-link no-history toast)."
+}

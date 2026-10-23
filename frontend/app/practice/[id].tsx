@@ -84,7 +84,7 @@ export default function PracticeScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Pressable style={styles.roundBtn} onPress={() => router.back()} testID="back-button">
+          <Pressable style={styles.roundBtn} onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} testID="back-button">
             <Ionicons name="arrow-back" size={22} color={colors.ink} />
           </Pressable>
           <View style={styles.headerCenter}>

@@ -1,0 +1,23 @@
+{
+  "summary": "Regression on new desktop-web mouse click-and-drag support in DragCarousel and back-button fallback. Mobile viewport 390x844. Verified on /practice/bat-m1a and /practice/pv-m2a. (1) Simulated native PointerEvent(pointerType='mouse') down-move-up with dx=-300px on both carousel-option and carousel-subject moves the selection off the first item: bat-m1a option-formula goes 'Will + be able to + Verbo' -> 'Would + be able to + Verbo'; pv-m2a option-formula goes 'Am / Is / Are + Pasado Participio' -> 'Has / Have been + Pasado Participio'. onChange fires and option-formula updates in real time. (2) After a drag, taps on option-{key} and subject-{key} still select (tapping option-should after drag on bat-m1a correctly shows 'Should + be able to + Verbo' and sentence 'I should be able to cut.'); the drag-tap suppression (dragged.current flag) does not break subsequent taps. (3) Generate after drag reflects the dragged selection: bat-m1a -> 'She would be able to cut.'; pv-m2a -> 'She has been played.' (both differ from initial first-item state). (4) back-button on direct deep link /practice/bat-m1a (no history) correctly falls back to router.replace('/'); URL becomes '/', home-title is visible. No red screens, no console errors, no deprecated expo packages observed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_4.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "DragCarousel.tsx webPointer handlers: correctly gated on pointerType==='mouse' so mobile touch still uses native scroll; uses 5px threshold before marking moved=true (avoids suppressing taps on micro-movement); dragged.current is read-and-reset inside Item onPress so one post-drag tap is swallowed and subsequent taps work. onPointerLeave settles too, handling the mouse-exits-container case.",
+    "practice/[id].tsx back-button: router.canGoBack() ? router.back() : router.replace('/') — correct fallback; no 'GO_BACK not handled' toast on deep links."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend only)", "frontend": "100% — 4/4 features verified on both bat-m1a and pv-m2a"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mobile viewport 390x844. To exercise desktop-web mouse drag on DragCarousel in Playwright, dispatch native PointerEvent on the OUTER container (parentElement of [data-testid='carousel-{option|subject}']) with pointerType:'mouse', isPrimary:true, button:0, pointerId:1 — Playwright's page.mouse.down/move/up do NOT trigger React Native Web's onPointerDown handler. Script pattern used: pointerdown at (cx,cy) -> 10 pointermove steps -> pointerup at (cx+dx,cy); dx=-300 reliably moves 2 items on bat-m1a option carousel. Settle debounce is 120ms, so wait ~500ms before asserting new state. All testIDs stable: practice-{id}, carousel-subject, carousel-option, subject-{key}, option-{key}, option-formula, generate-button, sentence-affirmative, back-button, home-title.",
+  "rca_of_issue": "Not applicable — no bugs found. New desktop click-and-drag feature works correctly; deep-link back fallback resolves the earlier known-minor 'GO_BACK not handled' toast."
+}
