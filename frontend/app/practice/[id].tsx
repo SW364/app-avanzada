@@ -46,7 +46,10 @@ export default function PracticeScreen() {
   const [opt, setOpt] = useState(initialOpt);
   const [verbId, setVerbId] = useState(practice.defaultVerb);
   const [verbModal, setVerbModal] = useState(false);
-  const [verbTab, setVerbTab] = useState<"regular" | "irregular">("regular");
+  const groupVerbs = useMemo(() => VERBS.filter((v) => practice.verbGroups.includes(v.group)), [practice.verbGroups]);
+  const hasRegular = groupVerbs.some((v) => v.regular);
+  const showTabs = hasRegular && groupVerbs.some((v) => !v.regular);
+  const [verbTab, setVerbTab] = useState<"regular" | "irregular">(hasRegular ? "regular" : "irregular");
   const [search, setSearch] = useState("");
 
   const build = useCallback((s: number, o: number, v: string): Trio => {
@@ -71,9 +74,14 @@ export default function PracticeScreen() {
 
   const q = search.trim().toLowerCase();
   const verbList = useMemo(() => {
-    const base = VERBS.filter((v) => practice.verbGroups.includes(v.group) && v.regular === (verbTab === "regular"));
+    const base = groupVerbs.filter((v) => v.regular === (verbTab === "regular"));
     return q ? base.filter((v) => v.en.includes(q) || v.es.includes(q)) : base;
-  }, [verbTab, q, practice.verbGroups]);
+  }, [verbTab, q, groupVerbs]);
+
+  // Fixed chapters (Mm1.AA…): structure is applied automatically from the chosen subject.
+  const liveAux = practice.fixed
+    ? conjugate({ module: practice.module, mode: practice.mode, key: options[opt].key, verb, person: PERSONS[subj], form: "affirmative" }).en.find((x) => x.hl)?.t
+    : undefined;
 
   const showEs = display === "mixed";
 
@@ -119,7 +127,15 @@ export default function PracticeScreen() {
           />
         </View>
 
-        {/* Option carousel (auxiliary / tense) */}
+        {practice.fixed ? (
+          <View style={styles.panel} testID="structure-panel">
+            <Text style={styles.panelTitle}>{`Estructura · ${options[opt].label}`}</Text>
+            <Text style={styles.formula} testID="option-formula">{options[opt].formula}</Text>
+            <Text style={[styles.structureLive, { color: accent }]} testID="structure-live">
+              {`${PERSONS[subj].en} + ${liveAux} + ${practice.module === "passive" ? "Pasado Participio" : "Verbo"}`}
+            </Text>
+          </View>
+        ) : (
         <View style={styles.panel}>
           <Text style={styles.panelTitle}>{isModal ? "Elige tu verbo auxiliar" : "Elige el tiempo"}</Text>
           <DragCarousel
@@ -139,6 +155,7 @@ export default function PracticeScreen() {
           />
           <Text style={styles.formula} testID="option-formula">{options[opt].formula}</Text>
         </View>
+        )}
 
         {/* Verb selector */}
         <View style={styles.panel}>
@@ -207,13 +224,17 @@ export default function PracticeScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setVerbModal(false)} testID="verb-modal-backdrop" />
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
             <View style={styles.sheetHandle} />
-            <View style={styles.tabRow}>
-              {(["regular", "irregular"] as const).map((tb) => (
-                <Pressable key={tb} testID={`tab-${tb}`} style={[styles.tab, verbTab === tb && styles.tabActive]} onPress={() => setVerbTab(tb)}>
-                  <Text style={[styles.tabText, verbTab === tb && styles.tabTextActive]}>{tb === "regular" ? "Regulares" : "Irregulares"}</Text>
-                </Pressable>
-              ))}
-            </View>
+            {showTabs ? (
+              <View style={styles.tabRow}>
+                {(["regular", "irregular"] as const).map((tb) => (
+                  <Pressable key={tb} testID={`tab-${tb}`} style={[styles.tab, verbTab === tb && styles.tabActive]} onPress={() => setVerbTab(tb)}>
+                    <Text style={[styles.tabText, verbTab === tb && styles.tabTextActive]}>{tb === "regular" ? "Regulares" : "Irregulares"}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.sheetTitle} testID="verb-list-title">Verbos M2.A · Lista oficial (30 verbos)</Text>
+            )}
             <View style={styles.searchBox}>
               <Ionicons name="search" size={18} color={colors.inkSoft} />
               <TextInput
@@ -321,6 +342,8 @@ const useStyles = makeStyles((c) => {
     modalBackdrop: { flex: 1, backgroundColor: c.backdrop, justifyContent: "flex-end" },
     sheet: { height: "82%", backgroundColor: c.card, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, paddingHorizontal: spacing.md, paddingTop: 10 },
     sheetHandle: { width: 44, height: 5, borderRadius: 3, backgroundColor: c.border, alignSelf: "center", marginBottom: spacing.md },
+    structureLive: { fontFamily: fonts.extrabold, fontSize: 18, textAlign: "center", marginTop: spacing.sm },
+    sheetTitle: { fontFamily: fonts.extrabold, fontSize: 14, color: c.ink, textAlign: "center" },
     tabRow: { flexDirection: "row", backgroundColor: c.tabTrack, borderRadius: radius.md, padding: 4 },
     tab: { flex: 1, paddingVertical: 10, borderRadius: radius.sm, alignItems: "center" },
     tabActive: { backgroundColor: c.card, shadowColor: c.shadow, shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },

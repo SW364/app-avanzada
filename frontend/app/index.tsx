@@ -37,7 +37,7 @@ export default function Modules() {
         <Text style={styles.moduleTitle} numberOfLines={2}>{p.title}</Text>
         <View style={styles.footerRow}>
           <View style={styles.hPill}><Text style={[styles.hPillText, { color }]}>{p.initialKey ? "H1" : `H${n}`}</Text></View>
-          <Text style={styles.tensesText} numberOfLines={1}>{p.initialKey ? "1 tiempo" : `${n} ${p.mode === "modal" ? "modales" : "tiempos"}`}</Text>
+          <Text style={styles.tensesText} numberOfLines={1}>{p.initialKey ? "1 tiempo" : p.mode === "modal" ? "modales" : `${n} tiempos`}</Text>
           <View style={styles.flex} />
           <Ionicons name="chevron-forward" size={18} color={color} />
         </View>

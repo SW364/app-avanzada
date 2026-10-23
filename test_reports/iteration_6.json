@@ -1,0 +1,29 @@
+{
+  "summary": "Frontend-only test (390x844, dispatch_event click). All requested features PASS. Home: Voz Pasiva cards M1.A, Mm1.AA, Mm2.AA, Mm3.AA, Mm4.AA render; module-pv-m2a is gone; BAT MM1.B-MM5.B cards unchanged. pv-mm1aa..mm4aa: no carousel-option, no 'Elige tu verbo auxiliar' or 'Elige el tiempo' text. The structure-panel shows option-formula and a structure-live line that updates per subject (I+am / She+is / They+are; I+was / They+were / We+were; I+have been / She+has been; We+had been). Generated sentences: I+cut => 'I am cut.' / 'Yo soy cortado.', 'I am not cut.', 'Am I cut?'. She+cut => 'She is cut.' / 'Ella es cortada.'. Mm2.AA We+put => 'We were put.' / 'Nosotros fuimos puestos.'. Mm3.AA He+hit => 'He has been hit.'. Mm4.AA We+wet => 'We had been wet.'. Slide => 'She is slid.' / 'Ella es deslizada.'. The verb modal on pv-mm1aa..mm4aa and bat-mm2b..mm5b lists exactly the 30 required verbs in order, with no tabs, verb-list-title shown, and no act/break/play. pv-m1a and bat-mm1b still have tab-regular/tab-irregular (93+67=160 verbs) and the auxiliary carousel. BAT mm2b..mm5b keep the tense carousel: They+hit => 'They are/were/have been/had been able to hit.'. back-button goes back to home.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "DragCarousel (subject)", "issue": "Subject taps 450ms apart that jump far (e.g. she->they) are sometimes ignored while the carousel is still animating. With ~1s between taps every tap works. Low impact, most likely existing behaviour.", "testID": "carousel-subject", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Verb modal (M2 chapters)", "issues": ["The verb-list-title says 'misma forma en presente, pasado y participio', but 'slide' (slid/slid) does not have the same form in all three. Consider rewording the title."]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optional: reword verb-list-title because 'slide' is the exception to 'misma forma'.",
+    "Optional: make the subject carousel accept taps while it is still animating."
+  ],
+  "critical_code_review_comments": [
+    "practice/[id].tsx: unknown ids such as the old pv-m2a silently fall back to pv-m1a. Acceptable, but a redirect or not-found screen would be clearer.",
+    "The build useCallback deps are [practice.id] with an eslint-disable comment. This works because options derive from practice."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Use element.dispatch_event('click') for Pressables and wait about 1s between subject carousel taps. Routes: pv-m1a, pv-mm1aa..pv-mm4aa (fixed, structure-panel), bat-mm1b..bat-mm5b. M2.A verb list has 30 verbs; slide is stored as base 'slide' with testID verb-option-slide."
+}

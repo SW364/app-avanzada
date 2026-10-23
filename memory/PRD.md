@@ -33,6 +33,11 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Reflexive verbs agree with the subject in BAT (disculparme, disculparnos)
 - Testing: iteration_5 passed
 
+## Update: AA chapters + M2.A verbs (June 2026)
+- Voz Pasiva: Mm1.AA Presente, Mm2.AA Pasado, Mm3.AA Presente Perfecto, Mm4.AA Pasado Perfecto. Each tense is fixed (no auxiliary selector); the structure is applied automatically from the subject
+- M2 modules (Voz Pasiva AA and BAT MM2.B–MM5.B) use only the 30 M2.A verbs (no tabs)
+- Testing: iteration_6 passed
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual
