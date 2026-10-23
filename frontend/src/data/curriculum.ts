@@ -96,7 +96,7 @@ export const MODULES: Record<ModuleId, LearningModule> = {
     defaultVerb: "M2.A-cut",
     sections: [
       {
-        code: "M1.A",
+        code: "MM1.B",
         manualCode: "MM1.B",
         mode: "modal",
         title: "Modales + be able to",
@@ -104,7 +104,7 @@ export const MODULES: Record<ModuleId, LearningModule> = {
         formula: "Modal + be able to + Verbo",
       },
       {
-        code: "M2.A",
+        code: "MM2.B – MM5.B",
         manualCode: "MM2.B – MM5.B",
         mode: "tense",
         title: "Los 4 tiempos fundamentales",

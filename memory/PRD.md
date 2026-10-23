@@ -26,6 +26,13 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Routes: /, /practice/[pv-m1a|pv-m2a|bat-m1a|bat-m2a]
 - Testing: iteration_2 18/18 passed
 
+## Update: 160 verbs + B nomenclature (June 2026)
+- M1.A (modals for Voz Pasiva and BAT) uses the official list of 160 verbs (93 regular / 67 irregular)
+- BAT: cards MM1.B (modals), MM2.B Presente, MM3.B Pasado, MM4.B Presente Perfecto, MM5.B Pasado Perfecto
+- Removed the "Capítulo ..." subtitle under the carousel
+- Reflexive verbs agree with the subject in BAT (disculparme, disculparnos)
+- Testing: iteration_5 passed
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual

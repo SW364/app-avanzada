@@ -1,0 +1,23 @@
+{
+  "summary": "Frontend-only verification for CalcuVerbs-Advanced iteration 5. Verified: (1) Home shows 7 cards with correct codes (pv-m1a/M1.A, pv-m2a/M2.A, bat-mm1b/MM1.B, bat-mm2b/MM2.B, bat-mm3b/MM3.B, bat-mm4b/MM4.B, bat-mm5b/MM5.B); no 'M1.A'/'M2.A' text leaked into BAT cards. (2) Practice header kicker is correct on every screen (MODO BAT · MM1.B..MM5.B and VOZ PASIVA · M1.A/M2.A). bat-mm4b opens with 'I have been able to cut.' and the three other BAT tense modules open on their own tenses (Presente / Pasado / Pasado Perfecto). (3) No 'Capítulo ...' text appears anywhere on practice screens. (4) Verb modal on bat-mm1b and pv-m1a serves the official 160-verb list: 93 Regulares + 67 Irregulares = 160 total; all expected regulars (answer, add, apologise, arrest, love, sky, smell, work) present; all expected irregulars (be, become, begin, blow, break, write, wear, cut) present; no cross-contamination (irregular tab lacks 'answer', regular tab lacks 'break'). (5) pv-m2a modal still uses M2.A/M3.A/M4.A lists ('act' in Regulares, 'bet' in Irregulares). (6) Conjugation samples match: pv-m1a can/he/write => 'He can be written.' / 'Él puede ser escrito.'; bat-mm1b will/I/apologise => 'I will be able to apologise.' / 'Yo seré capaz de disculparse.'. (7) Subject + option carousels tap-select correctly; back button and navigation flow work. All requested behaviors confirmed working.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERB_GROUPS metadata in /app/frontend/src/data/verbs.ts still describes M2.A as 'Irregulares' and M3.A as 'Regulares' which is slightly misleading given M1.A now owns the official 160-verb regular/irregular split. Not user-facing (metadata only); safe to leave but worth clarifying in future.",
+    "practice.ts hard-codes defaultVerb strings (e.g. 'M1.A-cut') which depend on verb ids staying stable; consider a lookup helper to avoid silent regressions if ids change."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A", "frontend": "100%" },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Viewport used 390x844. RN Pressable on web requires element.dispatch_event('click') for modal/tab interactions; page.click(force=True) works for most other elements but the verb modal tabs/options are more reliable with dispatch_event. Practice route ids are pv-m1a, pv-m2a, bat-mm1b..bat-mm5b. Verb option testIDs are 'verb-option-{en}'. Mixed EN→ES mode activated via menu-button → lang-mixed-en-es.",
+  "rca_of_issue": "N/A — no regressions found."
+}

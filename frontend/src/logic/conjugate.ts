@@ -147,6 +147,12 @@ function buildSpanish(verbs: string[], complement: string, p: Person, form: Form
   return `¿${cap(q.trim())}?`;
 }
 
+// Reflexive infinitives agree with the subject: disculparse → disculparme / disculparnos…
+const REFLEXIVE = ["me", "te", "se", "nos", "se"];
+function reflexive(es: string, p: Person): string {
+  return es.replace(/(ar|er|ir|ír)se\b/, (_m, end) => `${end}${REFLEXIVE[p.slot]}`);
+}
+
 // ---------- Public API ----------
 
 export type ConjugateInput = {
@@ -174,7 +180,7 @@ export function conjugate({ module, mode, key, verb, person, form }: ConjugateIn
   }
 
   const complement = isBat
-    ? `${person.plural ? "capaces" : "capaz"} de ${verb.es}`
+    ? `${person.plural ? "capaces" : "capaz"} de ${reflexive(verb.es, person)}`
     : agreeParticiple(verb.esPp, person);
 
   let es: string;

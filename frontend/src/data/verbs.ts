@@ -1,7 +1,7 @@
 // Verb catalogs from the official CalcuVerbs manuals (Voz Pasiva / BAT).
 // Format: "base|simple past|past participle|español (infinitivo)|participio ES (opcional)"
 
-export type VerbGroup = "M2.A" | "M3.A" | "M4.A";
+export type VerbGroup = "M1.A" | "M2.A" | "M3.A" | "M4.A";
 
 export type Verb = {
   id: string;
@@ -11,12 +11,179 @@ export type Verb = {
   es: string;
   esPp: string;
   group: VerbGroup;
+  regular: boolean;
 };
 
 export const VERB_GROUPS: { id: VerbGroup; label: string; hint: string }[] = [
+  { id: "M1.A", label: "M1.A", hint: "Lista de 160 verbos" },
   { id: "M2.A", label: "M2.A", hint: "Irregulares (misma forma)" },
   { id: "M3.A", label: "M3.A", hint: "Regulares (-ed)" },
   { id: "M4.A", label: "M4.A", hint: "Irregulares" },
+];
+
+
+// M1.A — official list of 160 verbs (infinitive). R = regular, I = irregular.
+const M1A = [
+  "R|answer|answered|answered|responder",
+  "R|add|added|added|agregar",
+  "R|apologise|apologised|apologised|disculparse",
+  "R|arrest|arrested|arrested|arrestar",
+  "R|arrive|arrived|arrived|llegar",
+  "R|ask|asked|asked|preguntar",
+  "R|attack|attacked|attacked|atacar",
+  "I|be|was / were|been|ser",
+  "I|become|became|become|convertirse",
+  "I|begin|began|begun|comenzar",
+  "R|believe|believed|believed|creer",
+  "R|boil|boiled|boiled|hervir",
+  "I|blow|blew|blown|soplar",
+  "R|book|booked|booked|reservar",
+  "R|borrow|borrowed|borrowed|tomar prestado|tomado prestado",
+  "I|break|broke|broken|romper",
+  "I|bring|brought|brought|traer",
+  "I|build|built|built|construir",
+  "I|buy|bought|bought|comprar",
+  "R|carry|carried|carried|cargar",
+  "I|catch|caught|caught|atrapar",
+  "R|change|changed|changed|cambiar",
+  "R|chop|chopped|chopped|picar",
+  "R|clean|cleaned|cleaned|limpiar",
+  "R|climb|climbed|climbed|escalar",
+  "R|collect|collected|collected|coleccionar",
+  "I|come|came|come|venir",
+  "R|compose|composed|composed|componer",
+  "R|cook|cooked|cooked|cocinar",
+  "R|copy|copied|copied|copiar",
+  "I|cut|cut|cut|cortar",
+  "R|dance|danced|danced|bailar",
+  "R|describe|described|described|describir",
+  "R|destroy|destroyed|destroyed|destruir",
+  "R|die|died|died|morir",
+  "R|discover|discovered|discovered|descubrir",
+  "R|discuss|discussed|discussed|discutir",
+  "I|do|did|done|hacer",
+  "I|draw|drew|drawn|dibujar",
+  "R|dream|dreamed|dreamed|soñar",
+  "I|drink|drank|drunk|beber",
+  "I|drive|drove|driven|conducir",
+  "R|dye|dyed|dyed|teñir",
+  "I|eat|ate|eaten|comer",
+  "R|enjoy|enjoyed|enjoyed|disfrutar",
+  "R|explode|exploded|exploded|explotar",
+  "R|extinguish|extinguished|extinguished|extinguir",
+  "I|fall|fell|fallen|caer",
+  "I|feed|fed|fed|alimentar",
+  "I|feel|felt|felt|sentir",
+  "I|fight|fought|fought|pelear",
+  "I|find|found|found|encontrar",
+  "I|fly|flew|flown|volar",
+  "I|forget|forgot|forgotten|olvidar",
+  "I|freeze|froze|frozen|congelar",
+  "R|fry|fried|fried|freír",
+  "I|give|gave|given|dar",
+  "I|go|went|gone|ir",
+  "I|grow|grew|grown|crecer",
+  "R|happen|happened|happened|suceder",
+  "R|hate|hated|hated|odiar",
+  "I|have|had|had|tener",
+  "I|hear|heard|heard|oír",
+  "R|help|helped|helped|ayudar",
+  "R|hire|hired|hired|contratar",
+  "R|hope|hoped|hoped|esperar",
+  "R|hunt|hunted|hunted|cazar",
+  "I|hurt|hurt|hurt|lastimar",
+  "R|imagine|imagined|imagined|imaginar",
+  "R|invent|invented|invented|inventar",
+  "R|invite|invited|invited|invitar",
+  "R|jump|jumped|jumped|saltar",
+  "I|keep|kept|kept|guardar",
+  "R|kill|killed|killed|matar",
+  "I|know|knew|known|conocer",
+  "I|leave|left|left|dejar",
+  "I|lend|lent|lent|prestar",
+  "I|lay|laid|laid|poner",
+  "I|lie|lay|lain|acostarse",
+  "R|lift|lifted|lifted|levantar",
+  "R|like|liked|liked|gustar",
+  "R|listen|listened|listened|escuchar",
+  "R|live|lived|lived|vivir",
+  "R|look|looked|looked|mirar",
+  "I|lose|lost|lost|perder",
+  "R|love|loved|loved|amar",
+  "I|make|made|made|hacer",
+  "I|meet|met|met|conocer",
+  "R|miss|missed|missed|extrañar",
+  "R|offer|offered|offered|ofrecer",
+  "R|open|opened|opened|abrir",
+  "R|pack|packed|packed|empacar",
+  "R|pass|passed|passed|pasar",
+  "I|pay|paid|paid|pagar",
+  "R|peel|peeled|peeled|pelar",
+  "R|phone|phoned|phoned|telefonear",
+  "R|plan|planned|planned|planear",
+  "R|play|played|played|jugar",
+  "R|pour|poured|poured|verter",
+  "R|prefer|preferred|preferred|preferir",
+  "R|prepare|prepared|prepared|preparar",
+  "R|push|pushed|pushed|empujar",
+  "I|put|put|put|poner",
+  "R|rain|rained|rained|llover",
+  "I|read|read|read|leer",
+  "R|reduce|reduced|reduced|reducir",
+  "R|remember|remembered|remembered|recordar",
+  "R|rent|rented|rented|rentar",
+  "R|rescue|rescued|rescued|rescatar",
+  "R|return|returned|returned|regresar",
+  "I|ring|rang|rung|llamar",
+  "I|run|ran|run|correr",
+  "R|save|saved|saved|salvar",
+  "I|say|said|said|decir",
+  "R|scream|screamed|screamed|gritar",
+  "R|search|searched|searched|buscar",
+  "I|see|saw|seen|ver",
+  "I|sell|sold|sold|vender",
+  "I|send|sent|sent|enviar",
+  "I|shine|shone|shone|brillar",
+  "I|shoot|shot|shot|disparar",
+  "I|shut|shut|shut|cerrar",
+  "I|sing|sang|sung|cantar",
+  "I|sit|sat|sat|sentarse",
+  "R|skate|skated|skated|patinar",
+  "R|sky|skyed|skyed|elevar",
+  "I|sleep|slept|slept|dormir",
+  "R|smell|smelled|smelled|oler",
+  "R|snore|snored|snored|roncar",
+  "I|speak|spoke|spoken|hablar",
+  "I|spend|spent|spent|gastar",
+  "R|start|started|started|empezar",
+  "R|stay|stayed|stayed|quedarse",
+  "I|steal|stole|stolen|robar",
+  "R|stop|stopped|stopped|detener",
+  "R|study|studied|studied|estudiar",
+  "R|survive|survived|survived|sobrevivir",
+  "I|swim|swam|swum|nadar",
+  "I|take|took|taken|tomar",
+  "R|talk|talked|talked|hablar",
+  "I|teach|taught|taught|enseñar",
+  "I|tell|told|told|decir",
+  "R|thank|thanked|thanked|agradecer",
+  "I|think|thought|thought|pensar",
+  "I|throw|threw|thrown|lanzar",
+  "R|touch|touched|touched|tocar",
+  "R|try|tried|tried|intentar",
+  "I|understand|understood|understood|entender",
+  "R|use|used|used|usar",
+  "R|visit|visited|visited|visitar",
+  "R|wait|waited|waited|esperar",
+  "R|walk|walked|walked|caminar",
+  "R|want|wanted|wanted|querer",
+  "R|warn|warned|warned|advertir",
+  "R|wash|washed|washed|lavar",
+  "R|watch|watched|watched|observar",
+  "I|wear|wore|worn|usar",
+  "I|win|won|won|ganar",
+  "R|work|worked|worked|trabajar",
+  "I|write|wrote|written|escribir",
 ];
 
 const M2A = [
@@ -169,6 +336,10 @@ const IRREGULAR_ES: Record<string, string> = {
   escribir: "escrito",
   volver: "vuelto",
   cubrir: "cubierto",
+  freír: "frito",
+  describir: "descrito",
+  descubrir: "descubierto",
+  componer: "compuesto",
 };
 
 // Spanish past participle (masculine singular) from an infinitive.
@@ -184,11 +355,18 @@ export function spanishParticiple(infinitive: string): string {
 function parse(list: string[], group: VerbGroup): Verb[] {
   return list.map((row) => {
     const [en, past, pp, es, esPp] = row.split("|");
-    return { id: `${group}-${en}`, en, past, pp, es, esPp: esPp ?? spanishParticiple(es), group };
+    return { id: `${group}-${en}`, en, past, pp, es, esPp: esPp ?? spanishParticiple(es), group, regular: group === "M3.A" };
   });
 }
 
-export const VERBS: Verb[] = [...parse(M2A, "M2.A"), ...parse(M3A, "M3.A"), ...parse(M4A, "M4.A")];
+function parseM1A(list: string[]): Verb[] {
+  return list.map((row) => {
+    const [flag, en, past, pp, es, esPp] = row.split("|");
+    return { id: `M1.A-${en}`, en, past, pp, es, esPp: esPp ?? spanishParticiple(es), group: "M1.A" as const, regular: flag === "R" };
+  });
+}
+
+export const VERBS: Verb[] = [...parseM1A(M1A), ...parse(M2A, "M2.A"), ...parse(M3A, "M3.A"), ...parse(M4A, "M4.A")];
 
 export function findVerb(id?: string): Verb | undefined {
   return VERBS.find((v) => v.id === id);

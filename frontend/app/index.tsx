@@ -36,8 +36,8 @@ export default function Modules() {
         <Text style={[styles.moduleCode, { color }]}>{p.code}</Text>
         <Text style={styles.moduleTitle} numberOfLines={2}>{p.title}</Text>
         <View style={styles.footerRow}>
-          <View style={styles.hPill}><Text style={[styles.hPillText, { color }]}>{`H${n}`}</Text></View>
-          <Text style={styles.tensesText}>{`${n} ${p.mode === "modal" ? "modales" : "tiempos"}`}</Text>
+          <View style={styles.hPill}><Text style={[styles.hPillText, { color }]}>{p.initialKey ? "H1" : `H${n}`}</Text></View>
+          <Text style={styles.tensesText} numberOfLines={1}>{p.initialKey ? "1 tiempo" : `${n} ${p.mode === "modal" ? "modales" : "tiempos"}`}</Text>
           <View style={styles.flex} />
           <Ionicons name="chevron-forward" size={18} color={color} />
         </View>
@@ -111,10 +111,10 @@ const useStyles = makeStyles((c) => ({
   iconCircle: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm },
   moduleCode: { fontFamily: fonts.extrabold, fontSize: 22 },
   moduleTitle: { fontFamily: fonts.semibold, fontSize: 13, color: c.inkSoft, marginTop: 2 },
-  footerRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: "auto", paddingTop: spacing.sm },
+  footerRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: "auto", paddingTop: spacing.sm },
   hPill: { backgroundColor: c.pillWhite, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, minWidth: 30, alignItems: "center" },
   hPillText: { fontFamily: fonts.extrabold, fontSize: 12 },
-  tensesText: { fontFamily: fonts.semibold, fontSize: 12, color: c.inkSoft },
+  tensesText: { fontFamily: fonts.semibold, fontSize: 12, color: c.inkSoft, flexShrink: 1 },
   menuBackdrop: { flex: 1, backgroundColor: c.menuBackdrop },
   menuCard: {
     position: "absolute", left: spacing.md, width: 264, backgroundColor: c.card, borderRadius: radius.lg, padding: spacing.sm,

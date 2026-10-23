@@ -51,7 +51,8 @@ export default function DragCarousel<T>({
   const stride = itemWidth + GAP;
   const [width, setWidth] = useState(Dimensions.get("window").width - 32);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const scrollX = useSharedValue(index * stride);
+  // Starts at 0 (real scroll offset); mount effects scroll to the initial index.
+  const scrollX = useSharedValue(0);
   const indexRef = useRef(index);
   const webTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -142,6 +143,9 @@ export default function DragCarousel<T>({
         scrollEventThrottle={16}
         onScroll={onScroll}
         contentOffset={{ x: index * stride, y: 0 }}
+        onContentSizeChange={() => {
+          if (Math.round(scrollX.value / stride) !== indexRef.current) scrollToIndex(indexRef.current, false);
+        }}
         contentContainerStyle={{ paddingLeft: sidePad, paddingRight: Math.max(sidePad - GAP, 0), paddingTop: 8, alignItems: "center" }}
       >
         {data.map((item, i) => (

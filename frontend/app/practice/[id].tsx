@@ -31,8 +31,9 @@ export default function PracticeScreen() {
   const m = MODULES[practice.module];
   const isModal = practice.mode === "modal";
   const options = isModal
-    ? m.modals.map((o) => ({ key: o.key, label: o.label, formula: m.sections[0].formula.replace("Modal", o.label), sub: `Capítulo 1 (${m.sections[0].manualCode})` }))
-    : m.chapters.map((c) => ({ key: c.key, label: c.title, formula: c.formula, sub: `${c.cap} (${c.manualCode})` }));
+    ? m.modals.map((o) => ({ key: o.key, label: o.label, formula: m.sections[0].formula.replace("Modal", o.label), code: practice.code }))
+    : m.chapters.map((c) => ({ key: c.key, label: c.title, formula: c.formula, code: practice.module === "bat" ? c.manualCode : practice.code }));
+  const initialOpt = Math.max(options.findIndex((o) => o.key === practice.initialKey), 0);
 
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -42,8 +43,8 @@ export default function PracticeScreen() {
   const accent = colors[practice.color] as string;
 
   const [subj, setSubj] = useState(0);
-  const [opt, setOpt] = useState(0);
-  const [verbId, setVerbId] = useState(m.defaultVerb);
+  const [opt, setOpt] = useState(initialOpt);
+  const [verbId, setVerbId] = useState(practice.defaultVerb);
   const [verbModal, setVerbModal] = useState(false);
   const [verbTab, setVerbTab] = useState<"regular" | "irregular">("regular");
   const [search, setSearch] = useState("");
@@ -60,7 +61,7 @@ export default function PracticeScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practice.id]);
 
-  const [cards, setCards] = useState<Trio>(() => build(0, 0, m.defaultVerb));
+  const [cards, setCards] = useState<Trio>(() => build(0, initialOpt, practice.defaultVerb));
   const verb = findVerb(verbId)!;
 
   const generate = () => {
@@ -70,9 +71,9 @@ export default function PracticeScreen() {
 
   const q = search.trim().toLowerCase();
   const verbList = useMemo(() => {
-    const base = VERBS.filter((v) => (verbTab === "regular" ? v.group === "M3.A" : v.group !== "M3.A"));
+    const base = VERBS.filter((v) => practice.verbGroups.includes(v.group) && v.regular === (verbTab === "regular"));
     return q ? base.filter((v) => v.en.includes(q) || v.es.includes(q)) : base;
-  }, [verbTab, q]);
+  }, [verbTab, q, practice.verbGroups]);
 
   const showEs = display === "mixed";
 
@@ -88,7 +89,7 @@ export default function PracticeScreen() {
             <Ionicons name="arrow-back" size={22} color={colors.ink} />
           </Pressable>
           <View style={styles.headerCenter}>
-            <Text style={styles.kicker}>{`${m.title.toUpperCase()} · ${practice.code}`}</Text>
+            <Text style={styles.kicker}>{`${m.title.toUpperCase()} · ${options[opt].code}`}</Text>
             <Text style={styles.headerTitle} testID="practice-title">{practice.title}</Text>
           </View>
           <View style={styles.roundBtn}>
@@ -137,7 +138,6 @@ export default function PracticeScreen() {
             )}
           />
           <Text style={styles.formula} testID="option-formula">{options[opt].formula}</Text>
-          <Text style={styles.formulaSub}>{options[opt].sub}</Text>
         </View>
 
         {/* Verb selector */}
@@ -288,7 +288,6 @@ const useStyles = makeStyles((c) => {
     pillText: { fontFamily: fonts.bold, fontSize: 16, color: c.inkSoft, textAlign: "center" },
     pillTextActive: { color: c.ink, fontFamily: fonts.extrabold },
     formula: { fontFamily: fonts.extrabold, fontSize: 14, color: c.ink, textAlign: "center", marginTop: spacing.xs, paddingHorizontal: spacing.md },
-    formulaSub: { fontFamily: fonts.semibold, fontSize: 11, color: c.inkSoft, textAlign: "center", marginTop: 2 },
     verbButton: {
       flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: spacing.md,
       backgroundColor: c.questionBg, borderRadius: radius.md, paddingVertical: 12,
