@@ -1,0 +1,27 @@
+{
+  "summary": "CalcuVerbs Advanced (Expo/React Native, Spanish UI) — frontend-only testing of Voz Pasiva and BAT (Be able to) modules. Navigation (Home → Module → Conjugator → Table), all pronouns, forms (afirmativa/negativa/interrogativa), tenses (present/past/presentPerfect/pastPerfect) and modals (can, could, may, will, should, would, must, shall, might, gonna, wanna, goingTo) were exercised. All 11 expected EN+ES sample sentences from the review request were verified via Playwright on mobile viewport 390×844. Full table screen rendered 7 person rows with correct EN/ES values and table-form chips update rows. Chips do not wrap (horizontal scroll) and the form segment fills width evenly. Static code review of /app/frontend/src/logic/conjugate.ts confirms the algorithm matches the expected outputs for all tested combinations.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_1.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: In conjugate.ts the English negative branch uses `${chain.aux} not` which produces 'will not', 'must not', 'should not', 'would not', 'may not', 'might not', 'shall not' — all grammatically correct. 'can' is special-cased to 'cannot'. Looks fine.",
+    "Minor: Spanish past-perfect uses 'había' for both yo (slot 0) and él/ella (slot 2) which is correct (same form), and the test confirms 'Había sido yo jugado?' for slot 0.",
+    "Minor: 'wanna' uses do/does negation and inversion — not covered by the review's expected samples but code path exists and is consistent.",
+    "testID coverage is excellent: home-module-*, module-screen-*, modal-option-*, chapter-*, option-*, person-*, form-*, verb-selector-button, verb-group-*, verb-item-*-*, result-english, result-english-alt, result-spanish, view-full-table-button, table-screen, table-row-*, table-en-*, table-es-*, table-form-*, header-back-button all present."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only)", "frontend": "100% (14/14 scenarios)"},
+  "seed_data_creation": "None required — all logic is local (no backend).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "On React Native web, PressableScale wraps Pressable; Playwright's `page.click()` with mouse events is occasionally missed by RN Pressable (the first paint race). Use `element.dispatch_event('click')` as a reliable tap primitive. The header-back-button testID appears on multiple stacked screens (Expo Router keeps previous screens mounted) — always use `.last` selector to interact with the visible one. All testIDs are already present on interactive elements.",
+  "rca_of_issue": "N/A — no bugs found. Verified sample sentences: Passive present I/play aff 'I am played / Yo soy jugado'; Passive present She interr 'Is she played? / ¿Es ella jugada?'; Passive PP We neg break 'We have not been broken / Nosotros no hemos sido rotos'; Passive pastPerf I interr 'Had I been played? / ¿Había sido yo jugado?'; Passive can He neg 'He cannot be played / Él no puede ser jugado'; gonna She neg 'She is not gonna be played / Ella no va a ser jugada'; BAT present I cut 'I am able to cut / Yo soy capaz de cortar'; BAT past They neg + alt 'They were not able to cut / They were unable to cut / Ellos no fueron capaces de cortar'; BAT PP We interr 'Have we been able to cut? / ¿Hemos sido nosotros capaces de cortar?'; BAT will I interr 'Will I be able to cut? / ¿Seré yo capaz de cortar?'; BAT would I aff 'I would be able to cut / Yo sería capaz de cortar'. Table negative I would 'I would not be able to cut'."
+}
