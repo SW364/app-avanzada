@@ -15,10 +15,10 @@ export type Verb = {
 };
 
 export const VERB_GROUPS: { id: VerbGroup; label: string; hint: string }[] = [
-  { id: "M1.A", label: "M1.A", hint: "Lista de 160 verbos" },
-  { id: "M2.A", label: "M2.A", hint: "Irregulares (misma forma)" },
-  { id: "M3.A", label: "M3.A", hint: "Regulares (-ed)" },
-  { id: "M4.A", label: "M4.A", hint: "Irregulares" },
+  { id: "M1.A", label: "M1", hint: "M1 · Lista de 160" },
+  { id: "M2.A", label: "M2", hint: "M2 · Invariables" },
+  { id: "M3.A", label: "M3", hint: "M3 · Regulares (-ed)" },
+  { id: "M4.A", label: "M4", hint: "M4 · Irregulares" },
 ];
 
 

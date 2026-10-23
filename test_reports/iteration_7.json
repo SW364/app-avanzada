@@ -1,0 +1,32 @@
+{
+  "summary": "I tested only the frontend, using Expo web at 390x844 on the public URL. Every requested item passed. Home: shows only section-passive and section-bat, with no module-* cards; each card goes to /section/passive or /section/bat. Voz Pasiva: subsection-AA and subsection-AB, with 8 cards (pv-mm1aa..mm4aa, pv-mm5ab..mm8ab) and no M1.A or Modales card. Modo BAT: 5 cards (bat-mm1b..mm5b). All 12 tense modules have no carousel-option and show the correct per-subject structure-live. The bat-mm1b carousel has exactly may, must, shall, will, might, gonna, wanna, should and would. Verb catalogs: 160 verbs split 93 regular / 67 irregular with tabs (pv-mm1aa, pv-mm5ab, bat-mm1b); 30 invariables (pv-mm2aa, pv-mm6ab, bat-mm2b, bat-mm5b); 58 regulars (pv-mm3aa, pv-mm7ab, bat-mm3b); 42 irregulars (pv-mm4aa, pv-mm8ab, bat-mm4b). The 58, 42 and 160 lists match /tmp/m3.txt, /tmp/m4.txt and /tmp/a160.txt exactly; the 30 invariables match the list in the request. Passive verb button and chips show the past participle (Break -> broken). All 11 requested conjugation checks passed, and all 9 BAT modals give correct EN/ES sentences with You+cut. Back navigation works: practice -> section -> home. No red screens or console errors. No deprecated Expo packages detected.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Verb search in tabbed catalogs (160 list)", "issue": "Search only covers the active tab, and it also matches Spanish substrings. For example, searching 'cut' on the Regulares tab shows only 'Discuss' (matched through 'discutir'); 'cut' is not found until the user switches to Irregulares. When a query is set, search both tabs or switch to the tab that has the match. Reference: app/practice/[id].tsx:76-79", "testID": "verb-search", "priority": "low"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Practice", "issues": ["back-button is 42x42, below the 44pt minimum touch target (roundBtn style, app/practice/[id].tsx:299). The section screen uses 44.", "The bookmark icon in the header looks tappable but does nothing (app/practice/[id].tsx:103)."]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": [".screenshots/home.jpg", ".screenshots/passive.jpg", ".screenshots/bat.jpg", ".screenshots/batmm1b.jpg", ".screenshots/conj.jpg", ".screenshots/bat_would.jpg"],
+  "action_items": [
+    "Optional: make verb search cover both Regulares and Irregulares (or switch to the tab with the match) in the 160-verb catalogs.",
+    "Optional: increase the practice back-button roundBtn to 44x44.",
+    "Optional cleanup: curriculum.ts passive.sections[0] (the 'M1.A' modal section) and passive.modals are now unused dead data; remove them so they don't come back by mistake.",
+    "Optional wording: passive Spanish questions read '¿Estoy siendo yo jugado?' / '¿Habíamos sido nosotros rotos?'. Consider putting the subject before the auxiliary chain (e.g. '¿Estoy yo siendo jugado?') if the manual prefers that order."
+  ],
+  "critical_code_review_comments": [
+    "curriculum.ts:67-85: the passive module still defines the M1.A modal section and an 11-modal list (including can/could). Practice screens no longer use them, but this is stale data.",
+    "practice/[id].tsx:34: modal option formulas come from m.sections[0].formula, which depends on section order. A dedicated modal formula field would be less fragile."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Navigation: Home (section-passive, section-bat) -> /section/[passive|bat] (module-<practiceId>) -> /practice/<id>. Tap RN Pressables on web with dispatch_event('click'). Verb modal: verb-selector-button -> tab-regular/tab-irregular (160 catalogs only) or verb-list-title -> verb-search -> verb-option-<en>. Search only covers the active tab, so 'cut' in a 160 catalog needs tab-irregular first. The Spanish reference (ref-*) shows by default (display mode 'mixed').",
+  "rca_of_issue": ""
+}

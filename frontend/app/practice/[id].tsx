@@ -11,7 +11,7 @@ import DragCarousel from "@/src/components/DragCarousel";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { MODULES } from "@/src/data/curriculum";
 import { findPractice } from "@/src/data/practice";
-import { VERBS, findVerb, type Verb } from "@/src/data/verbs";
+import { VERBS, VERB_GROUPS, findVerb, type Verb } from "@/src/data/verbs";
 import { PERSONS, conjugate, type Conjugation, type Form, type Segment } from "@/src/logic/conjugate";
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 
@@ -27,7 +27,7 @@ type Trio = Record<Form, Conjugation>;
 
 export default function PracticeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const practice = findPractice(id) ?? findPractice("pv-m1a")!;
+  const practice = findPractice(id) ?? findPractice("pv-mm1aa")!;
   const m = MODULES[practice.module];
   const isModal = practice.mode === "modal";
   const options = isModal
@@ -74,8 +74,9 @@ export default function PracticeScreen() {
 
   const q = search.trim().toLowerCase();
   const verbList = useMemo(() => {
-    const base = groupVerbs.filter((v) => v.regular === (verbTab === "regular"));
-    return q ? base.filter((v) => v.en.includes(q) || v.es.includes(q)) : base;
+    // Searching looks in both tabs (English infinitive, past participle or Spanish).
+    if (q) return groupVerbs.filter((v) => v.en.startsWith(q) || v.pp.startsWith(q) || v.es.startsWith(q));
+    return groupVerbs.filter((v) => v.regular === (verbTab === "regular"));
   }, [verbTab, q, groupVerbs]);
 
   // Fixed chapters (Mm1.AA…): structure is applied automatically from the chosen subject.
@@ -93,16 +94,14 @@ export default function PracticeScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Pressable style={styles.roundBtn} onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} testID="back-button">
+          <Pressable style={styles.roundBtn} onPress={() => (router.canGoBack() ? router.back() : router.replace(`/section/${practice.module}`))} testID="back-button">
             <Ionicons name="arrow-back" size={22} color={colors.ink} />
           </Pressable>
           <View style={styles.headerCenter}>
             <Text style={styles.kicker}>{`${m.title.toUpperCase()} · ${options[opt].code}`}</Text>
             <Text style={styles.headerTitle} testID="practice-title">{practice.title}</Text>
           </View>
-          <View style={styles.roundBtn}>
-            <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
-          </View>
+          <View style={styles.headerSpacer} />
         </View>
 
         {/* Subject carousel */}
@@ -132,7 +131,7 @@ export default function PracticeScreen() {
             <Text style={styles.panelTitle}>{`Estructura · ${options[opt].label}`}</Text>
             <Text style={styles.formula} testID="option-formula">{options[opt].formula}</Text>
             <Text style={[styles.structureLive, { color: accent }]} testID="structure-live">
-              {`${PERSONS[subj].en} + ${liveAux} + ${practice.module === "passive" ? "Pasado Participio" : "Verbo"}`}
+              {`${PERSONS[subj].en} + ${liveAux} + ${practice.module === "passive" ? "Pasado Participio" : "Verbo en Infinitivo"}`}
             </Text>
           </View>
         ) : (
@@ -233,7 +232,7 @@ export default function PracticeScreen() {
                 ))}
               </View>
             ) : (
-              <Text style={styles.sheetTitle} testID="verb-list-title">Verbos M2.A · Lista oficial (30 verbos)</Text>
+              <Text style={styles.sheetTitle} testID="verb-list-title">{`Verbos ${VERB_GROUPS.find((g) => g.id === practice.verbGroups[0])?.hint ?? ""} · ${groupVerbs.length} verbos`}</Text>
             )}
             <View style={styles.searchBox}>
               <Ionicons name="search" size={18} color={colors.inkSoft} />
@@ -296,7 +295,8 @@ const useStyles = makeStyles((c) => {
     dim: { opacity: 0.85 },
     header: { flexDirection: "row", alignItems: "center", marginBottom: spacing.md },
     headerCenter: { flex: 1, alignItems: "center", paddingHorizontal: spacing.xs },
-    roundBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: c.card, alignItems: "center", justifyContent: "center", ...shadow },
+    headerSpacer: { width: 44, height: 44 },
+    roundBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: "center", justifyContent: "center", ...shadow },
     kicker: { fontFamily: fonts.bold, fontSize: 11, letterSpacing: 1, color: c.primary, textAlign: "center" },
     headerTitle: { fontFamily: fonts.extrabold, fontSize: 20, color: c.ink, textAlign: "center" },
     panel: { backgroundColor: c.card, borderRadius: radius.lg, paddingVertical: spacing.md, marginBottom: spacing.md, ...shadow },

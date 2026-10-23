@@ -2,7 +2,9 @@
 
 export type ModuleId = "passive" | "bat";
 export type Mode = "modal" | "tense";
-export type TenseKey = "present" | "past" | "presentPerfect" | "pastPerfect";
+export type TenseKey =
+  | "present" | "past" | "presentPerfect" | "pastPerfect"
+  | "presentBeing" | "pastBeing" | "presentPerfectBeing" | "pastPerfectBeing";
 export type ModalKey =
   | "can" | "could" | "may" | "will" | "should" | "would"
   | "must" | "shall" | "might" | "gonna" | "wanna" | "goingTo";
@@ -86,6 +88,10 @@ export const MODULES: Record<ModuleId, LearningModule> = {
       { key: "past", cap: "Capítulo 2", manualCode: "Mm 2.AA", title: "Pasado", formula: "Was / Were + Pasado Participio", tone: "past" },
       { key: "presentPerfect", cap: "Capítulo 3", manualCode: "Mm 3.AA", title: "Presente Perfecto", formula: "Has / Have been + Pasado Participio", tone: "present" },
       { key: "pastPerfect", cap: "Capítulo 4", manualCode: "Mm 4.AA", title: "Pasado Perfecto", formula: "Had been + Pasado Participio", tone: "past" },
+      { key: "presentBeing", cap: "Capítulo 5", manualCode: "Mm 5.AB", title: "Presente Continuo", formula: "Am being / Is being / Are being + Pasado Participio", tone: "present" },
+      { key: "pastBeing", cap: "Capítulo 6", manualCode: "Mm 6.AB", title: "Pasado Continuo", formula: "Was being / Were being + Pasado Participio", tone: "past" },
+      { key: "presentPerfectBeing", cap: "Capítulo 7", manualCode: "Mm 7.AB", title: "Presente Perfecto Avanzado", formula: "Has been being / Have been being + Pasado Participio", tone: "present" },
+      { key: "pastPerfectBeing", cap: "Capítulo 8", manualCode: "Mm 8.AB", title: "Pasado Perfecto Avanzado", formula: "Had been being + Pasado Participio", tone: "past" },
     ],
   },
   bat: {
@@ -101,7 +107,7 @@ export const MODULES: Record<ModuleId, LearningModule> = {
         mode: "modal",
         title: "Modales + be able to",
         description: "Will, Must, Should, Would, Might… + be able to + Verbo",
-        formula: "Modal + be able to + Verbo",
+        formula: "Modal + be able to + Verbo en Infinitivo",
       },
       {
         code: "MM2.B – MM5.B",
@@ -112,12 +118,12 @@ export const MODULES: Record<ModuleId, LearningModule> = {
         formula: "To be + able to + Verbo",
       },
     ],
-    modals: pick(["will", "must", "should", "would", "might", "may", "shall", "gonna", "wanna", "goingTo"]),
+    modals: pick(["may", "must", "shall", "will", "might", "gonna", "wanna", "should", "would"]),
     chapters: [
-      { key: "present", cap: "Capítulo 2", manualCode: "MM2.B", title: "Presente", formula: "Am / Is / Are + able to + Verbo", tone: "present" },
-      { key: "past", cap: "Capítulo 3", manualCode: "MM3.B", title: "Pasado", formula: "Was / Were + able to + Verbo", tone: "past" },
-      { key: "presentPerfect", cap: "Capítulo 4", manualCode: "MM4.B", title: "Presente Perfecto", formula: "Has / Have been + able to + Verbo", tone: "present" },
-      { key: "pastPerfect", cap: "Capítulo 5", manualCode: "MM5.B", title: "Pasado Perfecto", formula: "Had been + able to + Verbo", tone: "past" },
+      { key: "present", cap: "Capítulo 2", manualCode: "MM2.B", title: "Presente", formula: "Am / Is / Are + able to + Verbo en Infinitivo", tone: "present" },
+      { key: "past", cap: "Capítulo 3", manualCode: "MM3.B", title: "Pasado", formula: "Was / Were + able to + Verbo en Infinitivo", tone: "past" },
+      { key: "presentPerfect", cap: "Capítulo 4", manualCode: "MM4.B", title: "Presente Perfecto", formula: "Has / Have been + able to + Verbo en Infinitivo", tone: "present" },
+      { key: "pastPerfect", cap: "Capítulo 5", manualCode: "MM5.B", title: "Pasado Perfecto", formula: "Had been + able to + Verbo en Infinitivo", tone: "past" },
     ],
   },
 };

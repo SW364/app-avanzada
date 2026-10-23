@@ -7,8 +7,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useLanguage, type DisplayMode } from "@/src/context/LanguageContext";
 import { MODULES } from "@/src/data/curriculum";
-import { PRACTICES, countOptions, type PracticeDef } from "@/src/data/practice";
+import { PRACTICES } from "@/src/data/practice";
+
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
+
+const SECTIONS = [
+  { id: "passive" as const, icon: "swap-horizontal" as const, color: "blue" as const, bg: "blueBg" as const, range: "Mm1.AA – Mm8.AB" },
+  { id: "bat" as const, icon: "flash" as const, color: "teal" as const, bg: "tealBg" as const, range: "MM1.B – MM5.B" },
+];
 
 export default function Modules() {
   const insets = useSafeAreaInsets();
@@ -19,31 +25,6 @@ export default function Modules() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const pick = (m: DisplayMode) => { setMode(m); setMenuOpen(false); };
-
-  const renderCard = (p: PracticeDef) => {
-    const color = colors[p.color] as string;
-    const n = countOptions(p);
-    return (
-      <Pressable
-        key={p.id}
-        testID={`module-${p.id}`}
-        onPress={() => router.push(`/practice/${p.id}`)}
-        style={({ pressed }) => [styles.cardModule, { backgroundColor: colors[p.bg] as string }, pressed && styles.pressed]}
-      >
-        <View style={[styles.iconCircle, { backgroundColor: color }]}>
-          <Ionicons name={p.icon} size={22} color={colors.onBrand} />
-        </View>
-        <Text style={[styles.moduleCode, { color }]}>{p.code}</Text>
-        <Text style={styles.moduleTitle} numberOfLines={2}>{p.title}</Text>
-        <View style={styles.footerRow}>
-          <View style={styles.hPill}><Text style={[styles.hPillText, { color }]}>{p.initialKey ? "H1" : `H${n}`}</Text></View>
-          <Text style={styles.tensesText} numberOfLines={1}>{p.initialKey ? "1 tiempo" : p.mode === "modal" ? "modales" : `${n} tiempos`}</Text>
-          <View style={styles.flex} />
-          <Ionicons name="chevron-forward" size={18} color={color} />
-        </View>
-      </Pressable>
-    );
-  };
 
   return (
     <LinearGradient colors={[colors.bgTop, colors.bgBottom]} style={styles.flex} testID="home-screen">
@@ -58,17 +39,33 @@ export default function Modules() {
         </View>
 
         <Text style={styles.title} testID="home-title">Módulos</Text>
-        <Text style={styles.subtitle}>CalcuVerbs Advanced · Elige un módulo para comenzar</Text>
+        <Text style={styles.subtitle}>CalcuVerbs Advanced · Elige una sección para comenzar</Text>
 
-        {(["passive", "bat"] as const).map((mid) => (
-          <View key={mid}>
-            <View style={styles.groupHead}>
-              <Text style={styles.groupTitle} testID={`group-${mid}`}>{MODULES[mid].title}</Text>
-              <Text style={styles.groupSub}>{MODULES[mid].subtitle}</Text>
-            </View>
-            <View style={styles.grid}>{PRACTICES.filter((p) => p.module === mid).map(renderCard)}</View>
-          </View>
-        ))}
+        {SECTIONS.map((sec) => {
+          const color = colors[sec.color] as string;
+          const n = PRACTICES.filter((p) => p.module === sec.id).length;
+          return (
+            <Pressable
+              key={sec.id}
+              testID={`section-${sec.id}`}
+              onPress={() => router.push(`/section/${sec.id}`)}
+              style={({ pressed }) => [styles.sectionCard, { backgroundColor: colors[sec.bg] as string }, pressed && styles.pressed]}
+            >
+              <View style={[styles.sectionIcon, { backgroundColor: color }]}>
+                <Ionicons name={sec.icon} size={30} color={colors.onBrand} />
+              </View>
+              <View style={styles.flex}>
+                <Text style={[styles.sectionTitle, { color }]}>{MODULES[sec.id].title}</Text>
+                <Text style={styles.sectionSub}>{MODULES[sec.id].subtitle}</Text>
+                <View style={styles.footerRow}>
+                  <View style={styles.hPill}><Text style={[styles.hPillText, { color }]}>{`${n} módulos`}</Text></View>
+                  <Text style={styles.tensesText} numberOfLines={1}>{sec.range}</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={color} />
+            </Pressable>
+          );
+        })}
       </ScrollView>
 
       <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
@@ -102,6 +99,10 @@ const useStyles = makeStyles((c) => ({
   },
   title: { fontFamily: fonts.extrabold, fontSize: 30, color: c.ink, textAlign: "center" },
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: c.inkSoft, textAlign: "center", marginTop: 2, marginBottom: spacing.sm },
+  sectionCard: { flexDirection: "row", alignItems: "center", gap: spacing.md, borderRadius: radius.lg, padding: spacing.md, marginTop: spacing.md, minHeight: 120 },
+  sectionIcon: { width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center" },
+  sectionTitle: { fontFamily: fonts.extrabold, fontSize: 24 },
+  sectionSub: { fontFamily: fonts.semibold, fontSize: 13, color: c.inkSoft },
   groupHead: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm, marginTop: spacing.md, marginBottom: spacing.sm },
   groupTitle: { fontFamily: fonts.extrabold, fontSize: 18, color: c.ink },
   groupSub: { fontFamily: fonts.semibold, fontSize: 12, color: c.inkSoft, flexShrink: 1 },

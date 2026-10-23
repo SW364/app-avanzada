@@ -56,6 +56,10 @@ function enTenseChain(tense: TenseKey, p: Person, tail: string[]): EnChain {
     case "past": return { aux: bePast(p), rest: tail };
     case "presentPerfect": return { aux: haveForm(p), rest: ["been", ...tail] };
     case "pastPerfect": return { aux: "had", rest: ["been", ...tail] };
+    case "presentBeing": return { aux: bePresent(p), rest: ["being", ...tail] };
+    case "pastBeing": return { aux: bePast(p), rest: ["being", ...tail] };
+    case "presentPerfectBeing": return { aux: haveForm(p), rest: ["been", "being", ...tail] };
+    case "pastPerfectBeing": return { aux: "had", rest: ["been", "being", ...tail] };
   }
 }
 
@@ -108,6 +112,10 @@ const ES_TENSE: Record<TenseKey, string[][]> = {
   past: [["fui"], ["fuiste"], ["fue"], ["fuimos"], ["fueron"]],
   presentPerfect: [["he", "sido"], ["has", "sido"], ["ha", "sido"], ["hemos", "sido"], ["han", "sido"]],
   pastPerfect: [["había", "sido"], ["habías", "sido"], ["había", "sido"], ["habíamos", "sido"], ["habían", "sido"]],
+  presentBeing: [["estoy", "siendo"], ["estás", "siendo"], ["está", "siendo"], ["estamos", "siendo"], ["están", "siendo"]],
+  pastBeing: [["estaba", "siendo"], ["estabas", "siendo"], ["estaba", "siendo"], ["estábamos", "siendo"], ["estaban", "siendo"]],
+  presentPerfectBeing: [["he", "estado", "siendo"], ["has", "estado", "siendo"], ["ha", "estado", "siendo"], ["hemos", "estado", "siendo"], ["han", "estado", "siendo"]],
+  pastPerfectBeing: [["había", "estado", "siendo"], ["habías", "estado", "siendo"], ["había", "estado", "siendo"], ["habíamos", "estado", "siendo"], ["habían", "estado", "siendo"]],
 };
 
 const ES_MODAL: Record<ModalKey, { forms: string[]; ser: boolean; prefix?: string }> = {

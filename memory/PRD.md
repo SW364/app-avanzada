@@ -38,6 +38,13 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - M2 modules (Voz Pasiva AA and BAT MM2.B–MM5.B) use only the 30 M2.A verbs (no tabs)
 - Testing: iteration_6 passed
 
+## Update: official structure (June 2026)
+- Home: 2 cards (Voz Pasiva, Modo BAT) → /section/[id]
+- Voz Pasiva: 8 modules (AA: Mm1–Mm4.AA, AB: Mm5–Mm8.AB with being / been being). The M1.A modals module was removed
+- BAT: MM1.B (May, Must, Shall, Will, Might, Gonna, Wanna, Should, Would), MM2.B–MM5.B with fixed tenses
+- Catalogs: Mm1/MM1 = 160 verbs, Mm2/MM2 = 30 invariable verbs, Mm3/MM3 = 58 regular verbs, Mm4/MM4 = 42 irregular verbs, MM5.B = invariable verbs (provisional), Mm5–Mm8.AB = 160, invariable, regular, irregular (assumed)
+- Testing: iteration_7 passed
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual

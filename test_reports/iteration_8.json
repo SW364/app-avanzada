@@ -1,0 +1,28 @@
+{
+  "summary": "Short frontend regression of the iteration_7 follow-ups at 390x844, run with Playwright against Expo web. Everything requested passed. 1) Verb search now covers both tabs. On /practice/pv-mm1aa, with tab-regular active, 'cut' returns only verb-option-cut (no 'discuss'). 'bro' returns break (broken) and bring (brought). Spanish prefixes work too ('romp' gives break, 'cort' gives cut). Input is trimmed and case-insensitive ('  CUT ' gives cut). A query with no match shows verb-empty. Clearing the search restores the tab lists (93 regular, 67 irregular). 2) Selecting cut, then subject I, then Generar gives 'I am cut.' / 'I am not cut.' / 'Am I cut?'. The Spanish line reads 'Yo soy cortado.' and structure-live reads 'I + am + Pasado Participio'. The search is cleared when the modal is reopened. 3) The header back-button measures 44x44. The bookmark icon is gone; a 44x44 empty spacer on the right keeps the title centred. 4) Navigation regression: home, section-passive (8 modules), pv-mm1aa, back, home all work, and so does home, section-bat (5 modules), bat-mm1b, back, home. Opening a practice URL directly in a fresh tab and tapping back goes to /section/passive.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Verb modal", "issues": ["While a search is active the results come from both tabs, but the 'Regulares' tab still looks selected. Consider dimming both tabs or showing a 'Resultados en ambos grupos' hint while the search has text."]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optional: while a search is active, show that the results cover both tabs (e.g. dim the active tab).",
+    "Optional: practice/[id].tsx:30 silently shows pv-mm1aa for an unknown id (e.g. /practice/bat-mm1aa renders the passive Mm1.AA screen). Consider redirecting to home or a not-found screen instead."
+  ],
+  "critical_code_review_comments": [
+    "practice/[id].tsx:78: the search compares against v.es with startsWith, but there is no accent normalisation. A user typing without an accent may miss a match if any Spanish infinitive starts with an accented letter. Minor.",
+    "practice/[id].tsx:30: the findPractice fallback hides bad routes (see action_items)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Tap RN Pressables with dispatch_event('click'). The verb search now covers both tabs (prefix match on en, pp or es). Header: back-button 44x44 plus an empty 44x44 spacer. Section screens also expose a back-button. Valid BAT practice ids are of the form bat-mm1b and so on.",
+  "rca_of_issue": ""
+}
