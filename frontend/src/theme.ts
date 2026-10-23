@@ -36,59 +36,79 @@ import { Appearance, StyleSheet, useColorScheme } from "react-native";
 export type ColorScheme = "light" | "dark";
 
 const light = {
-  surface: "#FFFDF7",
-  onSurface: "#171717",
+  // Original CalcuVerbs palette (github.com/SW364/calcuverbsApk)
+  surface: "#F7F5FF",
+  onSurface: "#2A2E45",
   surfaceSecondary: "#FFFFFF",
-  onSurfaceSecondary: "#171717",
-  surfaceTertiary: "#F3F4F6",
-  onSurfaceTertiary: "#171717",
-  surfaceInverse: "#1E293B",
-  onSurfaceInverse: "#F8FAFC",
-  muted: "#64748B",
+  onSurfaceSecondary: "#2A2E45",
+  surfaceTertiary: "#F5F6FA",
+  onSurfaceTertiary: "#2A2E45",
+  surfaceInverse: "#2A2E45",
+  onSurfaceInverse: "#FFFFFF",
+  muted: "#8A90A6",
 
-  brand: "#1E3A8A",
+  brand: "#4A7DF0",
   onBrand: "#FFFFFF",
-  brandPrimary: "#3B82F6",
+  brandPrimary: "#4A7DF0",
   onBrandPrimary: "#FFFFFF",
-  brandSecondary: "#FACC15",
-  onBrandSecondary: "#422006",
-  brandTertiary: "#A855F7",
-  onBrandTertiary: "#FFFFFF",
+  brandSecondary: "#EEF2FE",
+  onBrandSecondary: "#4A7DF0",
+  brandTertiary: "#E8F0FE",
+  onBrandTertiary: "#3B82F6",
 
-  success: "#22C55E",
+  success: "#22B573",
   onSuccess: "#FFFFFF",
-  warning: "#F59E0B",
+  warning: "#F5A623",
   onWarning: "#FFFFFF",
-  error: "#EF4444",
+  error: "#F0574A",
   onError: "#FFFFFF",
-  info: "#0EA5E9",
+  info: "#3B82F6",
   onInfo: "#FFFFFF",
 
-  border: "#E5E7EB",
-  borderStrong: "#94A3B8",
-  divider: "#F3F4F6",
+  border: "#EBEDF5",
+  borderStrong: "#D5D9E6",
+  divider: "#EBEDF5",
 
-  // CalcuVerbs rainbow + pedagogical highlight tints
-  rainbowBlue: "#3B82F6",
-  rainbowPurple: "#A855F7",
-  rainbowPink: "#EC4899",
-  rainbowYellow: "#FACC15",
-  rainbowGreen: "#22C55E",
-  presentTint: "#DBEAFE",
-  pastTint: "#FEF9C3",
-  modalTint: "#F3E8FF",
-  shadow: "#1E3A8A",
-  backdrop: "rgba(15,23,42,0.45)",
+  // CalcuVerbs specific
+  bgTop: "#EEF2FE",
+  bgBottom: "#F7F5FF",
+  card: "#FFFFFF",
+  ink: "#2A2E45",
+  inkSoft: "#8A90A6",
+  primary: "#4A7DF0",
+  affirmative: "#22B573",
+  affirmativeBg: "#E7F8EF",
+  negative: "#F0574A",
+  negativeBg: "#FDECEA",
+  question: "#3B82F6",
+  questionBg: "#E8F0FE",
+  tabTrack: "#F1F3F9",
+  shadow: "#8A90A6",
+  pillWhite: "rgba(255,255,255,0.75)",
+  frameFill: "rgba(74,125,240,0.04)",
+  backdrop: "rgba(20,22,40,0.4)",
+  menuBackdrop: "rgba(20,22,40,0.25)",
+  // module card accents
+  blue: "#4A7DF0", blueBg: "#E8F1FC",
+  teal: "#1FB6A6", tealBg: "#E4F6F3",
+  orange: "#F5A623", orangeBg: "#FDF3E1",
+  coral: "#F0654A", coralBg: "#FDECE8",
+  purple: "#8B5CF6", purpleBg: "#F0EAFB",
+  pink: "#EC4899", pinkBg: "#FCE7F1",
+  green: "#22B573", greenBg: "#E7F8EF",
 };
 
 export const fonts = {
-  display: "Caveat-Bold",
-  text: "Fredoka-Regular",
-  textBold: "Fredoka-SemiBold",
+  regular: "Nunito",
+  semibold: "Nunito-SemiBold",
+  bold: "Nunito-Bold",
+  extrabold: "Nunito-ExtraBold",
 };
 
-export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 };
-export const radius = { sm: 6, md: 12, lg: 20, pill: 999 };
+export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };
+export const radius = { sm: 12, md: 18, lg: 24, pill: 999 };
+
+export const colors = light;
 
 export type ThemeColors = typeof light;
 

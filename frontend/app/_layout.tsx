@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { ErrorBoundary } from "@/src/components/error-boundary";
+import { LanguageProvider } from "@/src/context/LanguageContext";
 import { queryClient } from "@/src/query-client";
 import { useTheme } from "@/src/theme";
 
@@ -16,18 +17,19 @@ LogBox.ignoreAllLogs(true);
 
 export default function RootLayout() {
   const { colors } = useTheme();
-  // Prewarm icon + custom fonts so icons render in Expo Go (Android included).
-  const [loaded] = useFonts({
+  // Prewarm icon font + Nunito (original CalcuVerbs typography) so icons render in Expo Go.
+  const [loaded, error] = useFonts({
     Ionicons: require("@react-native-vector-icons/ionicons/fonts/Ionicons.ttf"),
-    "Caveat-Bold": require("../assets/fonts/Caveat-Bold.ttf"),
-    "Fredoka-Regular": require("../assets/fonts/Fredoka-Regular.ttf"),
-    "Fredoka-SemiBold": require("../assets/fonts/Fredoka-SemiBold.ttf"),
+    Nunito: require("../assets/fonts/Nunito-Regular.ttf"),
+    "Nunito-SemiBold": require("../assets/fonts/Nunito-SemiBold.ttf"),
+    "Nunito-Bold": require("../assets/fonts/Nunito-Bold.ttf"),
+    "Nunito-ExtraBold": require("../assets/fonts/Nunito-ExtraBold.ttf"),
   });
 
-  if (!loaded) {
+  if (!loaded && !error) {
     return (
-      <View style={[styles.root, styles.center, { backgroundColor: colors.surface }]}>
-        <ActivityIndicator color={colors.brandPrimary} />
+      <View style={[styles.root, styles.center, { backgroundColor: colors.bgTop }]}>
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -37,8 +39,10 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <KeyboardProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface } }} />
+            <LanguageProvider>
+              <StatusBar style="dark" />
+              <Stack screenOptions={{ headerShown: false }} />
+            </LanguageProvider>
           </KeyboardProvider>
         </QueryClientProvider>
       </ErrorBoundary>

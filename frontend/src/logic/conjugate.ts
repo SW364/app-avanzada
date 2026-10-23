@@ -32,7 +32,7 @@ export const PERSONS: Person[] = [
   { key: "they", en: "They", es: "Ellos", slot: 4, third: true, plural: true, fem: false },
 ];
 
-export type Conjugation = { en: string; enAlt?: string; es: string };
+export type Conjugation = { en: Segment[]; enFull: string; enAlt?: string; es: string };
 
 // ---------- English ----------
 
@@ -73,19 +73,31 @@ function subjectLower(p: Person) {
   return p.key === "i" ? "I" : p.en.toLowerCase();
 }
 
-function buildEnglish(chain: EnChain, p: Person, form: Form): string {
-  const rest = chain.rest.join(" ");
-  if (form === "affirmative") return `${p.en} ${chain.aux} ${rest}`;
-  if (chain.negAux && chain.aux === "wanna") {
-    if (form === "negative") return `${p.en} ${chain.negAux === "does" ? "doesn't" : "don't"} wanna ${rest}`;
-    return `${cap(chain.negAux)} ${subjectLower(p)} wanna ${rest}?`;
-  }
+// Segment = piece of a sentence; hl=true pieces are colored (auxiliary chain), like the original app.
+export type Segment = { t: string; hl?: boolean };
+
+function buildEnglish(chain: EnChain, p: Person, form: Form): Segment[] {
+  const last = chain.rest[chain.rest.length - 1];
+  const mid = chain.rest.slice(0, -1).join(" ");
+  const midHl = mid ? ` ${mid}` : "";
+  const isWanna = chain.aux === "wanna" && chain.negAux;
+  if (form === "affirmative") return [{ t: `${p.en} ` }, { t: `${chain.aux}${midHl}`, hl: true }, { t: ` ${last}.` }];
   if (form === "negative") {
-    const neg = chain.aux === "can" ? "cannot" : `${chain.aux} not`;
-    return `${p.en} ${neg} ${rest}`;
+    const neg = isWanna
+      ? `${chain.negAux === "does" ? "doesn't" : "don't"} wanna`
+      : chain.aux === "can" ? "cannot" : `${chain.aux} not`;
+    return [{ t: `${p.en} ` }, { t: `${neg}${midHl}`, hl: true }, { t: ` ${last}.` }];
   }
-  return `${cap(chain.aux)} ${subjectLower(p)} ${rest}?`;
+  const op = isWanna ? chain.negAux! : chain.aux;
+  const after = isWanna ? `wanna${midHl}` : mid;
+  return [
+    { t: cap(op), hl: true },
+    { t: ` ${subjectLower(p)} ` },
+    ...(after ? [{ t: after, hl: true }, { t: ` ${last}?` }] : [{ t: `${last}?` }]),
+  ];
 }
+
+export const joinSegments = (s: Segment[]) => s.map((x) => x.t).join("");
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -153,11 +165,12 @@ export function conjugate({ module, mode, key, verb, person, form }: ConjugateIn
     ? enTenseChain(key as TenseKey, person, enTail)
     : enModalChain(key as ModalKey, person, enTail);
   const en = buildEnglish(chain, person, form);
+  const enFull = joinSegments(en);
 
   let enAlt: string | undefined;
   if (isBat && form === "negative" && key !== "wanna") {
     const unableChain = { ...chain, rest: chain.rest.map((w) => (w === "able to" ? "unable to" : w)) };
-    enAlt = buildEnglish(unableChain, person, "affirmative");
+    enAlt = joinSegments(buildEnglish(unableChain, person, "affirmative"));
   }
 
   const complement = isBat
@@ -172,5 +185,5 @@ export function conjugate({ module, mode, key, verb, person, form }: ConjugateIn
     const verbs = [...m.forms[person.slot].split(" "), ...(m.ser ? ["ser"] : [])];
     es = buildSpanish(verbs, complement, person, form, true, m.prefix);
   }
-  return { en, enAlt, es };
+  return { en, enFull, enAlt, es: form === "interrogative" ? es : `${es}.` };
 }

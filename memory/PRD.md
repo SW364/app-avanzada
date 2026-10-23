@@ -20,6 +20,12 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Full table for all 7 people for each form
 - Testing: 14/14 passed (iteration_1)
 
+## Update: UI matching the original app (June 2026)
+- The UI was rebuilt to match the original repo github.com/SW364/calcuverbsApk: blue gradient background, Nunito fonts, "Módulos" grid (2 columns, colored cards with H pill), practice screen with drag carousels (subject + auxiliary/tense), verb modal (Regulares/Irregulares tabs, search), "Generar" button, AFIRMATIVA + NEGATIVA/PREGUNTA cards with the auxiliary highlighted, plus the Spanish translation in italics
+- Menu: Solo inglés / Inglés → Español
+- Routes: /, /practice/[pv-m1a|pv-m2a|bat-m1a|bat-m2a]
+- Testing: iteration_2 18/18 passed
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual
