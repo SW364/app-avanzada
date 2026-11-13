@@ -1,6 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
+import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, LogBox, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -15,6 +16,9 @@ import { useTheme } from "@/src/theme";
 // and agent works as expected.
 LogBox.ignoreAllLogs(true);
 
+// Keep the CalcuVerbs splash (white background + logo) visible until fonts are ready.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function RootLayout() {
   const { colors } = useTheme();
   // Prewarm icon font + Nunito (original CalcuVerbs typography) so icons render in Expo Go.
@@ -26,9 +30,14 @@ export default function RootLayout() {
     "Nunito-ExtraBold": require("../assets/fonts/Nunito-ExtraBold.ttf"),
   });
 
-  if (!loaded && !error) {
+  const ready = loaded || !!error;
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
+
+  if (!ready) {
     return (
-      <View style={[styles.root, styles.center, { backgroundColor: colors.bgTop }]}>
+      <View style={[styles.root, styles.center, { backgroundColor: colors.card }]}>
         <ActivityIndicator color={colors.primary} />
       </View>
     );

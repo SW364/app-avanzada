@@ -48,6 +48,10 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 ## Update: single verb catalog (June 2026)
 - All 13 modules (Voz Pasiva and BAT) use the 160-verb list (Regulares/Irregulares). Voz Pasiva uses the past participle; BAT uses the infinitive
 
+## Update: branding (June 2026)
+- Icon, Android adaptive icon, splash and favicon now use the CalcuVerbs CV logo on a white background (#FFFFFF) to match the image
+- app.json name: "CalcuVerbs Advanced" (bundle IDs unchanged). The splash stays visible until the fonts load
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual
