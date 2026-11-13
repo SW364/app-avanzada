@@ -59,7 +59,7 @@ export default function SectionScreen() {
           <Pressable
             style={styles.roundBtn}
             testID="back-button"
-            onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace("/modules"))}
           >
             <Ionicons name="arrow-back" size={22} color={colors.ink} />
           </Pressable>

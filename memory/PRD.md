@@ -52,6 +52,11 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Icon, Android adaptive icon, splash and favicon now use the CalcuVerbs CV logo on a white background (#FFFFFF) to match the image
 - app.json name: "CalcuVerbs Advanced" (bundle IDs unchanged). The splash stays visible until the fonts load
 
+## Update: main menu (June 2026)
+- New main menu (/): CV logo, "Hola y Bienvenidos a CalcuVerbs-Advanced", Módulos / Videos / Mis Notas buttons, link to www.CalcuVerbs.com
+- The previous home screen moved to /modules (Voz Pasiva / Modo BAT); Videos and Mis Notas are placeholders
+- Testing: iteration_9 passed
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual
