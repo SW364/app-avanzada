@@ -2,10 +2,13 @@
 // device cache and played with ONE shared expo-audio player. This does not depend on the
 // phone's own text-to-speech engine, which is missing or disabled on many tablets/phones.
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from "expo-audio";
+import Constants from "expo-constants";
 import { File, Paths } from "expo-file-system";
 import { Platform } from "react-native";
 
-const BACKEND = process.env.EXPO_PUBLIC_BACKEND_URL;
+// .env is not included in builds made outside Emergent (e.g. your own EAS/Expo APK),
+// so app.json "extra.backendUrl" is the fallback that always ships inside the app.
+const BACKEND = (process.env.EXPO_PUBLIC_BACKEND_URL || (Constants.expoConfig?.extra?.backendUrl as string | undefined) || "").replace(/\/$/, "");
 
 export type SpeechStatus = "idle" | "loading" | "playing" | "error";
 type Listener = (status: SpeechStatus, id: string | null) => void;
@@ -45,19 +48,62 @@ async function withTimeout<T>(p: Promise<T>, ms: number, stage: string): Promise
   try { return await Promise.race([p, timeout]); } finally { if (t) clearTimeout(t); }
 }
 
+const uriCache = new Map<string, Promise<string>>();
+
+async function requestAudio(text: string): Promise<{ key: string; url: string }> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await withTimeout(
+        fetch(`${BACKEND}/api/tts`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) }),
+        25000, "request",
+      );
+      if (res.status >= 400 && res.status < 500) throw Object.assign(new Error(`request failed ${res.status}`), { noRetry: true });
+      if (!res.ok) throw new Error(`request failed ${res.status}`);
+      const { key, path } = (await res.json()) as { key: string; path: string };
+      return { key, url: `${BACKEND}${path}` };
+    } catch (e) {
+      lastErr = e;
+      if ((e as { noRetry?: boolean }).noRetry || attempt === 1) break;
+      await new Promise((r) => setTimeout(r, 600));
+    }
+  }
+  throw lastErr;
+}
+
 async function resolveAudioUri(text: string): Promise<string> {
-  const res = await withTimeout(
-    fetch(`${BACKEND}/api/tts`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) }),
-    20000, "request",
-  );
-  if (!res.ok) throw new Error(`request failed ${res.status}`);
-  const { key, path } = (await res.json()) as { key: string; path: string };
-  const url = `${BACKEND}${path}`;
+  if (!BACKEND) throw new Error("backend url missing");
+  const { key, url } = await requestAudio(text);
   if (Platform.OS === "web") return url;
-  // Native: play from a local cached file (reliable on every Android/iOS device).
-  const file = new File(Paths.cache, `tts-${key}.mp3`);
-  if (!file.exists) await withTimeout(File.downloadFileAsync(url, file), 20000, "download");
-  return file.uri;
+  // Native: play from a local cached file (works on old and new Android, tablets, emulators).
+  try {
+    const file = new File(Paths.cache, `tts-${key}.mp3`);
+    if (!file.exists || file.size === 0) {
+      if (file.exists) file.delete();
+      await withTimeout(File.downloadFileAsync(url, file), 25000, "download");
+    }
+    return file.uri;
+  } catch (e) {
+    console.warn("[tts] download failed, streaming instead:", e);
+    return url; // fallback: stream directly from the server
+  }
+}
+
+// Shared (memoised) lookup so a prefetch and a tap never generate twice.
+function getAudioUri(text: string): Promise<string> {
+  let p = uriCache.get(text);
+  if (!p) {
+    p = resolveAudioUri(text);
+    uriCache.set(text, p);
+    const mine = p;
+    p.catch(() => { if (uriCache.get(text) === mine) uriCache.delete(text); });
+  }
+  return p;
+}
+
+// Prepare audio in the background (called after "Generar") so taps play instantly.
+export function prefetchSpeech(texts: string[]) {
+  texts.forEach((t) => { getAudioUri(t).catch(() => {}); });
 }
 
 export async function speak(text: string, id: string) {
@@ -70,7 +116,11 @@ export async function speak(text: string, id: string) {
       await setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false, allowsRecording: false, interruptionMode: "duckOthers" });
       audioModeReady = true;
     }
-    const uri = await resolveAudioUri(text);
+    let uri = await getAudioUri(text);
+    if (uri.startsWith("file:") && !new File(uri).exists) {
+      uriCache.delete(text);
+      uri = await getAudioUri(text);
+    }
     if (mySeq !== seq) return; // a newer request replaced this one
     const p = getPlayer();
     p.replace({ uri });
@@ -79,12 +129,14 @@ export async function speak(text: string, id: string) {
     // Watchdog: if the audio never actually starts, show an error instead of a stuck stop icon.
     setTimeout(() => {
       if (mySeq === seq && currentId === id && !p.playing && p.currentTime === 0) {
+        uriCache.delete(text); // e.g. cache file cleared by Android: fetch again on retry
         currentId = null;
         emit("error", id);
       }
     }, 8000);
   } catch (e) {
     console.warn("[tts] failed:", e);
+    uriCache.delete(text);
     if (mySeq !== seq) return;
     currentId = null;
     emit("error", id);

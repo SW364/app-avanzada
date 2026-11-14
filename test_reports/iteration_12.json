@@ -1,0 +1,31 @@
+{
+  "summary": "Tested the TTS fix for APKs built outside Emergent (BACKEND fallback to app.json extra.backendUrl, 2 retries, native cache download with streaming fallback, memoised URIs, prefetch after Generar). Backend: test_tts.py 11/11 passed (POST /api/tts + GET .mp3 return 200). Web UI (390x844) on /practice/bat-mm1b and /practice/pv-mm1aa: after a subject change, Generar fires exactly 3 prefetch POSTs. The 3 speak taps then send 0 extra POSTs and 3 GET .mp3. Each one plays (HTMLMediaElement playing, label 'Detener audio') and returns to idle when done, with no speak-*-error. Tapping before Generar works (1 POST + 1 GET). When the text is unchanged, Generar only sends POSTs for new sentences (2), because memoisation works. Generar stops current audio, and back-button navigation stops audio. No deprecated packages (no expo-av or expo-speech).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_tts.py", "/app/test_reports/pytest/pytest_results_iter12.xml"],
+  "action_items": [
+    "MEDIUM: app.json extra.backendUrl points to the PREVIEW URL (calcuverbs-pasiva.preview.emergentagent.com). A user-built APK uses it forever, and preview environments can sleep or change. Tell the user to deploy and set backendUrl (or EAS env EXPO_PUBLIC_BACKEND_URL in eas.json) to the production URL before building.",
+    "LOW: uriCache keeps a file.uri forever. If Android evicts the cache file (Paths.cache), every later tap replays the missing file. The watchdog shows an error, and 'Toca para reintentar' reuses the same memoised URI, so it stays broken until the app restarts. Fix: on error or watchdog, uriCache.delete(text), and/or check file.exists before playing a cached URI.",
+    "LOW: withTimeout on File.downloadFileAsync does not cancel the download. A late or partial write could leave a truncated tts-<key>.mp3 that passes the size>0 check. Consider downloading to a temp name and then moving, or deleting the file when a timeout happens.",
+    "LOW: requestAudio retries right away, even on a 429 (rate limit). Add a short backoff (about 500ms) and skip the retry on 4xx."
+  ],
+  "critical_code_review_comments": [
+    "BACKEND fallback is correct: EXPO_PUBLIC_BACKEND_URL || Constants.expoConfig.extra.backendUrl, with the trailing slash stripped. If both are missing it throws 'backend url missing', so the error state shows instead of fetching 'undefined/api/tts'.",
+    "Single shared player plus the seq guard correctly drops stale speak calls. stopSpeech(true) bumps seq, so an in-flight load after Generar or leaving the screen never plays.",
+    "Watchdog (8s) guards against a stuck stop icon. A late 'playing' status clears the error. Acceptable for slow streaming fallback.",
+    "Web prefetch only does the POST (it does not preload the mp3), so the first tap still waits on the GET. On native, prefetch also downloads the file, so taps are instant. This is fine.",
+    "useFocusEffect cleanup stops audio on blur, back press and app background. Verified on web via back-button."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None (TTS cache entries created in Mongo for test sentences only)",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "No <audio> elements are in the DOM on web. To detect playback, hook HTMLMediaElement.prototype.play via add_init_script. Speak buttons expose aria-label 'Escuchar frase' / 'Detener audio'. Change the subject (subject-we etc.) before Generar, otherwise the memoised initial text means only 2 prefetch POSTs. The real APK/native file path cannot be tested here.",
+  "rca_of_issue": "The original bug was EXPO_PUBLIC_BACKEND_URL being undefined in an external EAS build (no .env), which led to fetch('undefined/api/tts'). It is now mitigated by the app.json extra.backendUrl fallback, which is verified in the code."
+}

@@ -1,0 +1,20 @@
+{
+  "summary": "Short regression after tts.ts robustness fixes. Backend test_tts.py 11/11 passed (/api/tts POST 200, GET audio 200). Web /practice/bat-mm1b at 390x844: picked subject 'we', tapped Generar, which sent exactly 3 prefetch POSTs (aff/neg/question), all 200. speak-affirmative/negative/question each called HTMLMediaElement.play once, with 0 speak-*-error elements. Taps reused the memoised prefetch: no extra POSTs, only audio GETs. Generar while playing pauses the audio and the label goes from 'Detener audio' back to 'Escuchar frase'. Code review confirms: 4xx responses throw noRetry and skip the retry; network/5xx get one retry after 600ms; the uriCache entry is removed on the speak catch and on the 8s watchdog; a file:// uri is checked with new File(uri).exists before playing and is re-fetched if the file is gone. No deprecated packages (expo-audio is used, not expo-av).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": [], "react_native_issues": []},
+  "test_report_links": ["/app/backend/tests/test_tts.py", "/app/test_reports/pytest/pytest_results_iter13.xml"],
+  "action_items": [
+    "Optional/minor: in requestAudio, skip the 600ms sleep after the final failed attempt (it currently adds a 600ms delay before the error shows).",
+    "Optional/minor: getAudioUri line 98 `p.catch(() => uriCache.delete(text))` could delete a newer entry; guard with `if (uriCache.get(text) === p)`."
+  ],
+  "critical_code_review_comments": [
+    "tts.ts:68 sleeps 600ms even after the last attempt; harmless but delays the error state.",
+    "tts.ts:98 unconditional delete in catch handler; low risk in practice because entries are only replaced after deletion."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "No <audio> elements are in the DOM on web; hook HTMLMediaElement.prototype.play/pause via add_init_script. Tap subject-we before Generar so you get 3 fresh prefetch POSTs. Native file:// cache, the existence check and Android cache eviction cannot be tested on web, only by code review."
+}
