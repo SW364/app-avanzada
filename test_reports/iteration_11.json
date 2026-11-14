@@ -1,0 +1,31 @@
+{
+  "summary": "Retest of the iteration_10 fixes, run at a 390x844 viewport on the public URL. Backend: 13/13 pytest passed (11 existing TTS tests plus 2 new rate-limit tests). Notes: all fixed. Clearing both fields and pressing back removes the note, and it stays removed after a reload. Autosave of emptied fields deletes the note while the editor is still open (storage becomes [], the delete button hides and the status shows 'Nueva nota'). Typing again re-creates the note. Clearing the fields and using browser back also leaves storage empty. Pressing delete -> confirm right after typing does not re-create the note (also checked after a reload). Cancelling a delete keeps the note. Create, edit and persistence after a reload still work. Practice /practice/bat-mm1b: while speak-affirmative plays, pressing generate-button pauses the HTMLAudioElement (paused=true) and the button goes back to the volume icon (f613). 9s later it still shows idle, so the watchdog raised no false error. The speak buttons have aria-label 'Escuchar frase' when idle and 'Detener audio' while playing. Tapping a playing button again stops it, and the back button stops audio. Every POST /api/tts and mp3 GET returned 200, and no speak-*-error appeared. Cached POSTs are never rate limited (35 rapid requests all returned 200). A unit test confirmed the limiter: 30 calls allowed, the 31st returns 429, and other IPs are unaffected. The live 429 was not tested to avoid 30+ paid generations. Deprecated packages detected: none (expo-audio is used, not expo-av).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/tts", "issue": "The rate limit is keyed on request.client.host, which behind the k8s ingress is the ingress pod IP (backend logs show only 10.219.0.5 and 10.219.0.6). So the 30 new generations/min is effectively shared by ALL users per ingress pod, not per user, and in production one busy class could block everyone. Use the first IP in the X-Forwarded-For header (fall back to client.host). Reference: /app/backend/server.py:108"},
+      {"endpoint": "POST /api/tts", "issue": "_tts_hits is never pruned for IPs that stop sending requests, so it grows slowly (minor). It is also per worker process. Reference: /app/backend/server.py:83-93"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_tts.py", "/app/backend/tests/test_tts_rate_limit.py", "/app/test_reports/pytest/pytest_results_it11.xml"],
+  "action_items": [
+    "Optional: key the TTS rate limit on the first IP in X-Forwarded-For instead of request.client.host (currently the ingress IP, so all users share one bucket) (server.py:108).",
+    "Optional: in tts.ts, the 8s watchdog marks an error if playback has not started; on a very slow network, audio that starts after 8s would play while the UI shows an error. Consider clearing the error/setting 'playing' on a later playbackStatusUpdate where playing=true."
+  ],
+  "critical_code_review_comments": [
+    "server.py:108 rate-limit identity is the ingress IP (see backend minor issue).",
+    "tts.ts:79-84 the watchdog has no recovery path if audio starts late (after 8s); low impact."
+  ],
+  "updated_files": ["/app/backend/tests/test_tts_rate_limit.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None. Test notes lived only in the per-session browser localStorage (fresh for each run). The TTS cache was hit for existing sentences; no new TEST_ backend records were created.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Notes are stored in localStorage key 'notes.v1' on web, and each browser_automation call starts with fresh storage. Speak state: aria-label 'Escuchar frase' = idle, 'Detener audio' = playing; icon codepoints f613 = idle, f59e = stop. expo-audio on web does not attach <audio> to the DOM, so to check paused/playing, hook HTMLMediaElement.prototype.play via add_init_script and then reload. Run backend tests with EXPO_PUBLIC_BACKEND_URL exported from frontend/.env (pytest.ini uses xdist)."
+}

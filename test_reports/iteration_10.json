@@ -1,0 +1,42 @@
+{
+  "summary": "Tested the TTS backend and the two new frontend features (Mis Notas, Escuchar Frases), plus regression, at a 390x844 viewport. Backend: 11/11 pytest passed. POST /api/tts returns {key(sha256), path}. GET returns audio/mpeg with valid mp3 bytes. Cached POSTs return the same key in under 3s, and an uncached real OpenAI generation took about 3.5s. Text that is empty, only whitespace or only markdown returns 400/422, text over 500 chars returns 422, and an unknown key returns 404. Notes: the whole flow passed (empty state, new note, 'Nueva nota' -> 'Guardado' autosave, list item with title and preview, edit then preview updated, survives a reload via localStorage notes.v1, delete with cancel and confirm, back to the list with the empty state). Speak: all 3 buttons render at 44x44. Each tap shows loading -> stop icon, then goes back to idle on 'ended'. The network showed POST /api/tts 200 and GET .mp3 200. HTMLMediaElement.play ran without rejection in headless mode, no speak-*-error appeared, and switching buttons pauses the previous audio so only one plays. Leaving the screen stops playback. Regression passed: modules -> section-bat -> module-bat-mm1b, subject and option carousels, verb modal search 'swi' -> swim, generate gives correct sentences. No deprecated packages (expo-audio used, no expo-av or expo-speech).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/tts/{key}.mp3", "issue": "key path param is not format-validated (accepts any string). Harmless with a Mongo _id lookup, but you could add a regex for a 64-char hex key."},
+      {"endpoint": "POST /api/tts", "issue": "There is no rate limit, and any text up to 500 chars generates a paid OpenAI call that is stored in Mongo forever. Anyone can grow the cache and cost without limit. Consider a rate limit or an allowlist."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Note editor", "issue": "If a user clears all text of an already-saved note and goes back, the old content stays. Autosave and saveAndClose both skip saving when title and body are empty, so the note reappears with its previous title/body (reproduced: typed 'TEST_Clear', waited for 'Guardado', cleared the title, went back, and the list still shows 'TEST_Clear'). Either delete the note when it becomes empty or save the empty state. Reference: /app/frontend/app/note/[id].tsx:35,47", "testID": "note-title-input", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Speak + Generate", "issue": "generate() does not call stopSpeech(). If the user changes the subject, option or verb and presses Generate while audio plays, the old sentence keeps playing and the button still shows the stop icon next to the new sentence. Reference: /app/frontend/app/practice/[id].tsx:71-74", "affected_testIDs": ["generate-button", "speak-affirmative", "speak-negative", "speak-question"]}
+    ],
+    "design_issues": [
+      {"screen": "Practice", "issues": ["SpeakButton Pressable has no accessibilityLabel or accessibilityRole (icon-only button, so screen readers announce nothing). Reference: /app/frontend/app/practice/[id].tsx:307"]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_tts.py", "/app/test_reports/pytest/pytest_tts.xml"],
+  "action_items": [
+    "Note editor: handle a note whose content has been cleared (delete it, or persist the empty fields) so old content does not reappear (note/[id].tsx lines 35 and 47).",
+    "Call stopSpeech() inside generate() in practice/[id].tsx so stale audio stops when new sentences are generated.",
+    "Add accessibilityLabel (e.g. 'Escuchar frase afirmativa') and accessibilityRole='button' to SpeakButton.",
+    "Optional: rate-limit POST /api/tts and validate the key format on GET."
+  ],
+  "critical_code_review_comments": [
+    "tts.ts emits 'playing' right after p.play() without confirming that playback started. If the player fails to load the source (bad file or network), there is no error listener, so the UI could stay on the stop icon forever. Consider listening for player errors/isLoaded in playbackStatusUpdate.",
+    "note/[id].tsx remove() does not clear a pending autosave timer before deleteNote. Edge case: if the timer fires during the delete, it re-creates the note. Clear timer.current at the start of remove().",
+    "notes.ts upsert/delete are read-modify-write on a single localStorage key with no locking. That is acceptable for a single user, but autosave and saveAndClose can run concurrently (same id, so it is benign today).",
+    "Expo log contains an old 'Linking did not produce an initial navigation state' error. It did not reproduce in the browser during this run."
+  ],
+  "updated_files": ["/app/backend/tests/test_tts.py"],
+  "success_rate": {"backend": "100%", "frontend": "95% (all requested flows pass; 1 medium note-edit edge bug, 1 minor speak/generate sync issue)"},
+  "seed_data_creation": "Created one TTS cache doc for the text 'TEST_ She is able to swim today number 4821.' and deleted it by its key afterwards. Notes were created only in ephemeral browser localStorage.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Notes are stored in localStorage key 'notes.v1' on web, and each browser_automation call starts with fresh storage. Speak icon states: Ionicons volume-high codepoint f613 = idle, stop f59e = playing, [role=progressbar] = loading. Headless Chromium DOES play the audio (an 'ended' event fires, about 2s per sentence), so sample the state within about 1.5s of a tap. Use :visible selectors, because stacked screens keep old back buttons in the DOM.",
+  "rca_of_issue": ""
+}

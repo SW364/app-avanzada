@@ -57,6 +57,11 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - The previous home screen moved to /modules (Voz Pasiva / Modo BAT); Videos and Mis Notas are placeholders
 - Testing: iteration_9 passed
 
+## Update: Mis Notas + Escuchar Frases (June 2026)
+- Mis Notas: create, edit (autosave), delete; stored on the device (storage util)
+- Escuchar Frases: speaker button on each card; backend /api/tts (OpenAI tts-1, voice nova, Emergent LLM key) cached in Mongo; the app downloads the mp3 and plays it with a single expo-audio player (silent mode, stops on back/background/Generar). Does not depend on the phone's TTS engine
+- Testing: iterations 10-11 passed
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual

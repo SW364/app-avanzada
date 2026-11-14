@@ -1,9 +1,9 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
-import { FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, AppState, BackHandler, FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -14,6 +14,7 @@ import { findPractice } from "@/src/data/practice";
 import { VERBS, VERB_GROUPS, findVerb, type Verb } from "@/src/data/verbs";
 import { PERSONS, conjugate, type Conjugation, type Form, type Segment } from "@/src/logic/conjugate";
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
+import { speak, stopSpeech, subscribeSpeech, type SpeechStatus } from "@/src/utils/tts";
 
 const EMOJI: Record<string, string> = { i: "🧒", you: "🧑", he: "👦", she: "👧", it: "🐱", we: "👨‍👩‍👦", they: "👥" };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -69,6 +70,7 @@ export default function PracticeScreen() {
 
   const generate = () => {
     tick("medium");
+    stopSpeech();
     setCards(build(subj, opt, verbId));
   };
 
@@ -85,6 +87,20 @@ export default function PracticeScreen() {
     : undefined;
 
   const showEs = display === "mixed";
+
+  // Audio: one shared player; stop on leaving the screen, app background or Android back.
+  const [speech, setSpeech] = useState<{ status: SpeechStatus; id: string | null }>({ status: "idle", id: null });
+  useEffect(() => subscribeSpeech((status, sid) => setSpeech({ status, id: sid })), []);
+  useFocusEffect(useCallback(() => {
+    const back = BackHandler.addEventListener("hardwareBackPress", () => { stopSpeech(); return false; });
+    const app = AppState.addEventListener("change", (st) => { if (st !== "active") stopSpeech(); });
+    return () => { back.remove(); app.remove(); stopSpeech(); };
+  }, []));
+  const speakProps = (form: Form) => ({
+    testID: `speak-${form === "interrogative" ? "question" : form}`,
+    status: speech.id === form ? speech.status : "idle" as SpeechStatus,
+    onPress: () => (speech.id === form && speech.status === "playing" ? stopSpeech() : speak(cards[form].enFull, form)),
+  });
 
   return (
     <LinearGradient colors={[colors.bgTop, colors.bgBottom]} style={styles.flex} testID={`practice-${practice.id}`}>
@@ -183,6 +199,7 @@ export default function PracticeScreen() {
               </View>
             </View>
             <SentenceText segs={cards.affirmative.en} color={colors.affirmative} testID="sentence-affirmative" />
+            <SpeakButton {...speakProps("affirmative")} color={colors.affirmative} bg={colors.affirmativeBg} />
             {showEs ? <Text style={styles.refSentence} testID="ref-affirmative">{cards.affirmative.es}</Text> : null}
           </View>
 
@@ -199,6 +216,7 @@ export default function PracticeScreen() {
               </View>
               {cards.negative.enAlt ? <Text style={styles.altSentence} testID="alt-negative">{cards.negative.enAlt}</Text> : null}
               {showEs ? <Text style={styles.refSentenceSm} testID="ref-negative">{cards.negative.es}</Text> : null}
+              <SpeakButton {...speakProps("negative")} color={colors.negative} bg={colors.negativeBg} small />
             </View>
 
             <View style={[styles.card, styles.cardHalf]} testID="card-question">
@@ -212,6 +230,7 @@ export default function PracticeScreen() {
                 <SentenceText segs={cards.interrogative.en} color={colors.question} small testID="sentence-question" />
               </View>
               {showEs ? <Text style={styles.refSentenceSm} testID="ref-question">{cards.interrogative.es}</Text> : null}
+              <SpeakButton {...speakProps("interrogative")} color={colors.question} bg={colors.questionBg} small />
             </View>
           </View>
         </View>
@@ -279,6 +298,28 @@ export default function PracticeScreen() {
   );
 }
 
+function SpeakButton({ status, onPress, color, bg, small, testID }: {
+  status: SpeechStatus; onPress: () => void; color: string; bg: string; small?: boolean; testID: string;
+}) {
+  const styles = useStyles();
+  const icon = status === "playing" ? "stop" : status === "error" ? "refresh" : "volume-high";
+  return (
+    <View style={[styles.speakWrap, small ? styles.speakWrapSm : null]}>
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={status === "playing" ? "Detener audio" : "Escuchar frase"}
+        style={({ pressed }) => [styles.speakBtn, { backgroundColor: bg }, pressed && styles.speakPressed]}
+      >
+        {status === "loading" ? <ActivityIndicator size="small" color={color} /> : <Ionicons name={icon} size={20} color={color} />}
+      </Pressable>
+      {status === "error" ? <Text style={styles.speakError} testID={`${testID}-error`}>No se pudo reproducir. Toca para reintentar.</Text> : null}
+    </View>
+  );
+}
+
 function SentenceText({ segs, color, small, testID }: { segs: Segment[]; color: string; small?: boolean; testID: string }) {
   const styles = useStyles();
   return (
@@ -325,6 +366,11 @@ const useStyles = makeStyles((c) => {
     cardsWrap: { marginTop: spacing.md },
     card: { backgroundColor: c.card, borderRadius: radius.lg, padding: spacing.md, ...shadow },
     cardAff: { alignItems: "center", marginBottom: spacing.md },
+    speakWrap: { alignItems: "center", marginTop: spacing.sm, gap: 4 },
+    speakWrapSm: { alignItems: "flex-start" },
+    speakBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+    speakPressed: { transform: [{ scale: 0.92 }] },
+    speakError: { fontFamily: fonts.semibold, fontSize: 11, color: c.negative },
     cardHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" },
     statusCircle: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
     statusCircleSm: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
