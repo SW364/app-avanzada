@@ -62,6 +62,11 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Escuchar Frases: speaker button on each card; backend /api/tts (OpenAI tts-1, voice nova, Emergent LLM key) cached in Mongo; the app downloads the mp3 and plays it with a single expo-audio player (silent mode, stops on back/background/Generar). Does not depend on the phone's TTS engine
 - Testing: iterations 10-11 passed
 
+## Update: audio in external APK (June 2026)
+- Bug: APKs built with the user's own Expo/EAS lacked .env, so EXPO_PUBLIC_BACKEND_URL was empty and audio never played
+- Fix: app.json extra.backendUrl fallback (read via expo-constants), 2 retries, download with a streaming fallback, prefetch after Generar
+- The fallback currently points to the preview URL; after Publish it should be switched to the production URL
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual

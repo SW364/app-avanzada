@@ -59,7 +59,8 @@
       },
       "eas": {
         "projectId": "64fb4207-d6db-400d-aa97-02e837b36e45"
-      }
+      },
+      "backendUrl": "https://calcuverbs-pasiva.preview.emergentagent.com"
     },
     "owner": "sw3644"
   }

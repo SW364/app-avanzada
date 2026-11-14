@@ -14,7 +14,7 @@ import { findPractice } from "@/src/data/practice";
 import { VERBS, VERB_GROUPS, findVerb, type Verb } from "@/src/data/verbs";
 import { PERSONS, conjugate, type Conjugation, type Form, type Segment } from "@/src/logic/conjugate";
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
-import { speak, stopSpeech, subscribeSpeech, type SpeechStatus } from "@/src/utils/tts";
+import { prefetchSpeech, speak, stopSpeech, subscribeSpeech, type SpeechStatus } from "@/src/utils/tts";
 
 const EMOJI: Record<string, string> = { i: "🧒", you: "🧑", he: "👦", she: "👧", it: "🐱", we: "👨‍👩‍👦", they: "👥" };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -71,7 +71,9 @@ export default function PracticeScreen() {
   const generate = () => {
     tick("medium");
     stopSpeech();
-    setCards(build(subj, opt, verbId));
+    const next = build(subj, opt, verbId);
+    setCards(next);
+    prefetchSpeech([next.affirmative.enFull, next.negative.enFull, next.interrogative.enFull]);
   };
 
   const q = search.trim().toLowerCase();
