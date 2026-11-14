@@ -52,6 +52,16 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Icon, Android adaptive icon, splash and favicon now use the CalcuVerbs CV logo on a white background (#FFFFFF) to match the image
 - app.json name: "CalcuVerbs Advanced" (bundle IDs unchanged). The splash stays visible until the fonts load
 
+## Update: main menu (June 2026)
+- New main menu (/): CV logo, "Hola y Bienvenidos a CalcuVerbs-Advanced", Módulos / Videos / Mis Notas buttons, link to www.CalcuVerbs.com
+- The previous home screen moved to /modules (Voz Pasiva / Modo BAT); Videos and Mis Notas are placeholders
+- Testing: iteration_9 passed
+
+## Update: Mis Notas + Escuchar Frases (June 2026)
+- Mis Notas: create, edit (autosave), delete; stored on the device (storage util)
+- Escuchar Frases: speaker button on each card; backend /api/tts (OpenAI tts-1, voice nova, Emergent LLM key) cached in Mongo; the app downloads the mp3 and plays it with a single expo-audio player (silent mode, stops on back/background/Generar). Does not depend on the phone's TTS engine
+- Testing: iterations 10-11 passed
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual

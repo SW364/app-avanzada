@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only test of the new CalcuVerbs-Advanced main menu at 390x844 with Playwright on Expo web. All 7 requested flows PASS. 1) '/' shows main-menu, main-logo (logo.png loaded, naturalWidth 512), main-title 'CalcuVerbs-Advanced', the text 'Hola y Bienvenidos a', menu-modules / menu-videos / menu-notes (each 358x84) and website-link (269x48). 2) menu-modules goes to /modules, which shows section-passive and section-bat. menu-button opens the modal with lang-english and lang-mixed-en-es; picking one closes it. back-button returns to '/'. 3) Chain / > /modules > /section/passive > /practice/pv-mm1aa: tapping generate-button gives sentence-affirmative 'I am played.'. Pressing back 3 times goes /section/passive > /modules > /. 4) menu-videos shows videos-screen 'Próximamente' and back returns to /. 5) menu-notes shows notes-screen 'Próximamente' and back returns to /. 6) website-link opens a popup at https://calcuverbs.com/ (it redirects from www) and the main tab stays on /. 7) A fresh deep link to /section/bat, then back, goes to /modules, then back again goes to /. Deep links to /videos, /notes and /modules fall back to '/'. No page errors. No deprecated Expo packages found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Placeholder.tsx: the `flex` style mixes flex:1 with paddingHorizontal and sits on the LinearGradient root. It works, but the name is misleading (cosmetic).",
+    "Placeholder.tsx msg style has a pointless borderRadius on a Text element (cosmetic).",
+    "modules.tsx has leftover unused styles (groupHead, grid, cardModule, iconCircle, moduleCode, moduleTitle, ...) from the old home screen. These can be removed.",
+    "Stacked screens keep hidden back-button nodes in the DOM. Tests must use '[data-testid=\"back-button\"]:visible'."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Tap RN Pressables with dispatch_event('click'). Use the ':visible' pseudo selector for back-button, because the stack keeps earlier screens in the DOM. The main menu is at '/' (testID main-menu). The old home with the sections is now at /modules (testID home-screen). The placeholders have testIDs videos-screen and notes-screen, with messages in {id}-message. website-link opens a popup that resolves to https://calcuverbs.com/."
+}

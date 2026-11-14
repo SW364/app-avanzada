@@ -1,130 +1,114 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { useRouter, type Href } from "expo-router";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { useLanguage, type DisplayMode } from "@/src/context/LanguageContext";
-import { MODULES } from "@/src/data/curriculum";
-import { PRACTICES } from "@/src/data/practice";
 
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 
-const SECTIONS = [
-  { id: "passive" as const, icon: "swap-horizontal" as const, color: "blue" as const, bg: "blueBg" as const, range: "Mm1.AA – Mm8.AB" },
-  { id: "bat" as const, icon: "flash" as const, color: "teal" as const, bg: "tealBg" as const, range: "MM1.B – MM5.B" },
+const SITE_URL = "https://www.calcuverbs.com";
+
+type MenuItem = {
+  key: string;
+  label: string;
+  sub: string;
+  icon: "grid" | "play-circle" | "create";
+  href: Href;
+  color: "blue" | "coral" | "teal";
+  bg: "blueBg" | "coralBg" | "tealBg";
+};
+
+const ITEMS: MenuItem[] = [
+  { key: "modules", label: "Módulos", sub: "Voz Pasiva y Modo BAT", icon: "grid", href: "/modules", color: "blue", bg: "blueBg" },
+  { key: "videos", label: "Videos", sub: "Clases y explicaciones", icon: "play-circle", href: "/videos", color: "coral", bg: "coralBg" },
+  { key: "notes", label: "Mis Notas", sub: "Tus apuntes personales", icon: "create", href: "/notes", color: "teal", bg: "tealBg" },
 ];
 
-export default function Modules() {
+export default function MainMenu() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const styles = useStyles();
   const { colors } = useTheme();
-  const { mode, setMode } = useLanguage();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const pick = (m: DisplayMode) => { setMode(m); setMenuOpen(false); };
 
   return (
-    <LinearGradient colors={[colors.bgTop, colors.bgBottom]} style={styles.flex} testID="home-screen">
+    <LinearGradient colors={[colors.bgTop, colors.bgBottom]} style={styles.flex} testID="main-menu">
       <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + spacing.sm, paddingBottom: insets.bottom + spacing.xl, paddingHorizontal: spacing.md }}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.roundBtn} testID="menu-button" onPress={() => setMenuOpen(true)}>
-            <Ionicons name="menu" size={22} color={colors.ink} />
-          </Pressable>
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.hero}>
+          <View style={styles.logoRing}>
+            <Image source={require("../assets/images/logo.png")} style={styles.logo} contentFit="contain" testID="main-logo" />
+          </View>
+          <Text style={styles.hello}>Hola y Bienvenidos a</Text>
+          <Text style={styles.brand} testID="main-title">CalcuVerbs-Advanced</Text>
+        </Animated.View>
+
+        <View style={styles.list}>
+          {ITEMS.map((it, i) => {
+            const color = colors[it.color];
+            return (
+              <Animated.View key={it.key} entering={FadeInDown.delay(120 + i * 90).duration(400)}>
+                <Pressable
+                  testID={`menu-${it.key}`}
+                  onPress={() => router.push(it.href)}
+                  style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+                >
+                  <View style={[styles.iconCircle, { backgroundColor: colors[it.bg] }]}>
+                    <Ionicons name={it.icon} size={26} color={color} />
+                  </View>
+                  <View style={styles.flex}>
+                    <Text style={[styles.itemLabel, { color }]}>{it.label}</Text>
+                    <Text style={styles.itemSub}>{it.sub}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={22} color={color} />
+                </Pressable>
+              </Animated.View>
+            );
+          })}
         </View>
 
-        <Text style={styles.title} testID="home-title">Módulos</Text>
-        <Text style={styles.subtitle}>CalcuVerbs Advanced · Elige una sección para comenzar</Text>
+        <View style={styles.flex} />
 
-        {SECTIONS.map((sec) => {
-          const color = colors[sec.color] as string;
-          const n = PRACTICES.filter((p) => p.module === sec.id).length;
-          return (
-            <Pressable
-              key={sec.id}
-              testID={`section-${sec.id}`}
-              onPress={() => router.push(`/section/${sec.id}`)}
-              style={({ pressed }) => [styles.sectionCard, { backgroundColor: colors[sec.bg] as string }, pressed && styles.pressed]}
-            >
-              <View style={[styles.sectionIcon, { backgroundColor: color }]}>
-                <Ionicons name={sec.icon} size={30} color={colors.onBrand} />
-              </View>
-              <View style={styles.flex}>
-                <Text style={[styles.sectionTitle, { color }]}>{MODULES[sec.id].title}</Text>
-                <Text style={styles.sectionSub}>{MODULES[sec.id].subtitle}</Text>
-                <View style={styles.footerRow}>
-                  <View style={styles.hPill}><Text style={[styles.hPillText, { color }]}>{`${n} módulos`}</Text></View>
-                  <Text style={styles.tensesText} numberOfLines={1}>{sec.range}</Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={22} color={color} />
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
-        <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)} testID="menu-backdrop">
-          <View style={[styles.menuCard, { top: insets.top + 58 }]}>
-            <Text style={styles.menuTitle}>Mostrar frases</Text>
-            <Pressable testID="lang-english" style={styles.menuItem} onPress={() => pick("en")}>
-              <View style={styles.codeBadge}><Text style={styles.codeBadgeText}>EN</Text></View>
-              <Text style={styles.menuItemText}>Solo inglés</Text>
-              {mode === "en" ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
-            </Pressable>
-            <View style={styles.menuDivider} />
-            <Pressable testID="lang-mixed-en-es" style={styles.menuItem} onPress={() => pick("mixed")}>
-              <View style={styles.codeBadge}><Text style={styles.codeBadgeText}>EN→ES</Text></View>
-              <Text style={styles.menuItemText}>Inglés → Español</Text>
-              {mode === "mixed" ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
-            </Pressable>
-          </View>
+        <Pressable
+          testID="website-link"
+          onPress={() => Linking.openURL(SITE_URL)}
+          style={({ pressed }) => [styles.site, pressed && styles.pressed]}
+        >
+          <Ionicons name="globe-outline" size={18} color={colors.primary} />
+          <Text style={styles.siteText}>www.CalcuVerbs.com</Text>
+          <Ionicons name="open-outline" size={16} color={colors.inkSoft} />
         </Pressable>
-      </Modal>
+      </ScrollView>
     </LinearGradient>
   );
 }
 
-const useStyles = makeStyles((c) => ({
-  flex: { flex: 1 },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: spacing.sm },
-  roundBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: "center", justifyContent: "center",
-    shadowColor: c.shadow, shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3,
-  },
-  title: { fontFamily: fonts.extrabold, fontSize: 30, color: c.ink, textAlign: "center" },
-  subtitle: { fontFamily: fonts.regular, fontSize: 14, color: c.inkSoft, textAlign: "center", marginTop: 2, marginBottom: spacing.sm },
-  sectionCard: { flexDirection: "row", alignItems: "center", gap: spacing.md, borderRadius: radius.lg, padding: spacing.md, marginTop: spacing.md, minHeight: 120 },
-  sectionIcon: { width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center" },
-  sectionTitle: { fontFamily: fonts.extrabold, fontSize: 24 },
-  sectionSub: { fontFamily: fonts.semibold, fontSize: 13, color: c.inkSoft },
-  groupHead: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm, marginTop: spacing.md, marginBottom: spacing.sm },
-  groupTitle: { fontFamily: fonts.extrabold, fontSize: 18, color: c.ink },
-  groupSub: { fontFamily: fonts.semibold, fontSize: 12, color: c.inkSoft, flexShrink: 1 },
-  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
-  cardModule: { width: "48%", borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md, minHeight: 168 },
-  pressed: { transform: [{ scale: 0.97 }] },
-  iconCircle: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm },
-  moduleCode: { fontFamily: fonts.extrabold, fontSize: 22 },
-  moduleTitle: { fontFamily: fonts.semibold, fontSize: 13, color: c.inkSoft, marginTop: 2 },
-  footerRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: "auto", paddingTop: spacing.sm },
-  hPill: { backgroundColor: c.pillWhite, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, minWidth: 30, alignItems: "center" },
-  hPillText: { fontFamily: fonts.extrabold, fontSize: 12 },
-  tensesText: { fontFamily: fonts.semibold, fontSize: 12, color: c.inkSoft, flexShrink: 1 },
-  menuBackdrop: { flex: 1, backgroundColor: c.menuBackdrop },
-  menuCard: {
-    position: "absolute", left: spacing.md, width: 264, backgroundColor: c.card, borderRadius: radius.lg, padding: spacing.sm,
-    shadowColor: c.ink, shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8,
-  },
-  menuTitle: { fontFamily: fonts.extrabold, fontSize: 13, color: c.inkSoft, paddingHorizontal: 10, paddingTop: 6, paddingBottom: 8 },
-  menuItem: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 10, borderRadius: radius.md },
-  codeBadge: { minWidth: 30, paddingHorizontal: 6, height: 24, borderRadius: 7, backgroundColor: c.brandSecondary, alignItems: "center", justifyContent: "center" },
-  codeBadgeText: { fontFamily: fonts.extrabold, fontSize: 11, letterSpacing: 0.5, color: c.primary },
-  menuItemText: { flex: 1, fontFamily: fonts.bold, fontSize: 15, color: c.ink },
-  menuDivider: { height: 1, backgroundColor: c.border, marginHorizontal: 10 },
-}));
+const useStyles = makeStyles((c) => {
+  const shadow = { shadowColor: c.shadow, shadowOpacity: 0.15, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3 };
+  return {
+    flex: { flex: 1 },
+    content: { flexGrow: 1, paddingHorizontal: spacing.md },
+    hero: { alignItems: "center" },
+    logoRing: { width: 132, height: 132, borderRadius: 66, backgroundColor: c.card, alignItems: "center", justifyContent: "center", ...shadow },
+    logo: { width: 120, height: 120 },
+    hello: { fontFamily: fonts.semibold, fontSize: 16, color: c.inkSoft, marginTop: spacing.md },
+    brand: { fontFamily: fonts.extrabold, fontSize: 28, color: c.ink, textAlign: "center" },
+    list: { marginTop: spacing.lg, gap: spacing.md },
+    item: {
+      flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: c.card,
+      borderRadius: radius.lg, padding: spacing.md, minHeight: 84, ...shadow,
+    },
+    pressed: { transform: [{ scale: 0.98 }], opacity: 0.92 },
+    iconCircle: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
+    itemLabel: { fontFamily: fonts.extrabold, fontSize: 20 },
+    itemSub: { fontFamily: fonts.semibold, fontSize: 13, color: c.inkSoft },
+    site: {
+      flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, alignSelf: "center",
+      marginTop: spacing.lg, paddingHorizontal: spacing.lg, height: 48, borderRadius: radius.pill, backgroundColor: c.card, ...shadow,
+    },
+    siteText: { fontFamily: fonts.extrabold, fontSize: 16, color: c.primary },
+  };
+});

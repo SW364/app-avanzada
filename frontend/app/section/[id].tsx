@@ -38,7 +38,7 @@ export default function SectionScreen() {
           <Ionicons name={p.icon} size={22} color={colors.onBrand} />
         </View>
         <Text style={[styles.moduleCode, { color }]}>{p.code}</Text>
-        <Text style={styles.moduleTitle} numberOfLines={2}>{p.title}</Text>
+        <Text style={styles.moduleTitle} numberOfLines={3}>{p.title}</Text>
         <Text style={styles.moduleFormula} numberOfLines={3}>{p.formula}</Text>
         <View style={styles.footerRow}>
           <View style={styles.hPill}><Text style={[styles.hPillText, { color }]}>{`Verbos ${catalog}`}</Text></View>
@@ -59,7 +59,7 @@ export default function SectionScreen() {
           <Pressable
             style={styles.roundBtn}
             testID="back-button"
-            onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace("/modules"))}
           >
             <Ionicons name="arrow-back" size={22} color={colors.ink} />
           </Pressable>
