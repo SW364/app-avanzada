@@ -1,6 +1,6 @@
 import { storage } from "@/src/utils/storage";
 
-export type Note = { id: string; title: string; body: string; updatedAt: string };
+export type Note = { id: string; title: string; body: string; updatedAt: string; moduleId?: string };
 
 const KEY = "notes.v1";
 

@@ -1,5 +1,5 @@
 import type { ThemeColors } from "@/src/theme";
-import type { ModuleId, Mode, TenseKey } from "@/src/data/curriculum";
+import { MODULES, type ModuleId, type Mode, type TenseKey } from "@/src/data/curriculum";
 import type { VerbGroup } from "@/src/data/verbs";
 
 export type PracticeId =
@@ -55,4 +55,9 @@ export const PRACTICES: PracticeDef[] = [
 
 export function findPractice(id?: string) {
   return PRACTICES.find((p) => p.id === id);
+}
+
+export function moduleLabel(id?: string) {
+  const p = findPractice(id);
+  return p ? `${p.code} · ${MODULES[p.module].title}` : "";
 }

@@ -72,6 +72,11 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Voice: TTS with expo-speech (user's tts.ts, device voice); STT with expo-speech-recognition (src/utils/stt.ts), on-device when available, friendly messages and an Open Settings button when the mic is blocked
 - The user installs the native packages locally (npx expo install) and builds with EAS; the Emergent preview cannot bundle these modules
 
+## Update: clearer Practice + goals + notes per module (June 2026)
+- Practice: one answer method per exercise (speak/type/choose), locked after the first answer; "TU TAREA" box with a specific instruction and "El hueco ___ es: …"
+- Goals: XP and levels (Principiante → Maestro CalcuVerbs), daily goal of 15, rounds of 10 with dots and a final summary, streak with a bonus every 5
+- Notes: each module (practice/[id]) has a button → /notes?module=id (filtered list; new notes are linked to the module); Mis Notas shows a badge with the module or "General"
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual

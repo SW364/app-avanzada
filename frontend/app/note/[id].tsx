@@ -7,10 +7,12 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { deleteNote, getNote, upsertNote } from "@/src/data/notes";
+import { moduleLabel } from "@/src/data/practice";
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 
 export default function NoteEditor() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, module: moduleParam } = useLocalSearchParams<{ id: string; module?: string }>();
+  const [moduleId, setModuleId] = useState<string | undefined>(moduleParam);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const styles = useStyles();
@@ -25,7 +27,7 @@ export default function NoteEditor() {
 
   useEffect(() => {
     getNote(id).then((n) => {
-      if (n) { setTitle(n.title); setBody(n.body); setExists(true); }
+      if (n) { setTitle(n.title); setBody(n.body); setExists(true); setModuleId(n.moduleId); }
       setLoaded(true);
     });
   }, [id]);
@@ -38,7 +40,7 @@ export default function NoteEditor() {
     if (empty && !exists) return;
     timer.current = setTimeout(() => {
       if (empty) deleteNote(id).then(() => { setExists(false); setSaved(false); });
-      else upsertNote({ id, title: title.trim(), body }).then(() => { setExists(true); setSaved(true); });
+      else upsertNote({ id, title: title.trim(), body, moduleId }).then(() => { setExists(true); setSaved(true); });
     }, 500);
     return () => { if (timer.current) clearTimeout(timer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,7 +50,7 @@ export default function NoteEditor() {
 
   const saveAndClose = async () => {
     if (timer.current) clearTimeout(timer.current);
-    if (title.trim() || body.trim()) await upsertNote({ id, title: title.trim(), body });
+    if (title.trim() || body.trim()) await upsertNote({ id, title: title.trim(), body, moduleId });
     else await deleteNote(id); // an emptied note is removed
     goBack();
   };
@@ -79,6 +81,12 @@ export default function NoteEditor() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}
       >
+        {moduleId ? (
+          <View style={styles.modBadge} testID="note-module-badge">
+            <Ionicons name="bookmark" size={14} color={colors.blue} />
+            <Text style={styles.modBadgeText}>{`Nota de ${moduleLabel(moduleId)}`}</Text>
+          </View>
+        ) : null}
         <View style={styles.paper}>
           <TextInput
             testID="note-title-input"
@@ -134,6 +142,8 @@ const useStyles = makeStyles((c) => {
     spacer: { width: 44 },
     status: { flex: 1, textAlign: "center", fontFamily: fonts.bold, fontSize: 14, color: c.inkSoft },
     content: { paddingHorizontal: spacing.md, flexGrow: 1 },
+    modBadge: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: c.blueBg, borderRadius: radius.pill, paddingHorizontal: 12, height: 30, marginBottom: spacing.sm },
+    modBadgeText: { fontFamily: fonts.extrabold, fontSize: 12, color: c.blue },
     paper: { flexGrow: 1, backgroundColor: c.card, borderRadius: radius.lg, padding: spacing.md, minHeight: 420, ...shadow },
     titleInput: { fontFamily: fonts.extrabold, fontSize: 22, color: c.ink, paddingVertical: spacing.xs },
     divider: { height: 1, backgroundColor: c.border, marginVertical: spacing.sm },

@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { evaluate, type Verdict } from "@/src/practice/evaluate";
 import { TOPICS, generateExercise, type Exercise, type ExerciseKind, type TopicId } from "@/src/practice/generator";
-import { EMPTY_STATS, loadStats, recordResult, type PracticeStats } from "@/src/practice/stats";
+import { DAILY_GOAL, EMPTY_STATS, ROUND_SIZE, XP_PER_LEVEL, levelOf, levelTitle, loadStats, recordResult, startNewRound, type PracticeStats } from "@/src/practice/stats";
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 import { openAppSettings, sttMessage, useSpeechToText } from "@/src/utils/stt";
 import { speak, stopSpeech, subscribeSpeech, type SpeechStatus } from "@/src/utils/tts";
@@ -50,7 +50,7 @@ export default function DrillScreen() {
     const r = evaluate(heard, accepted);
     setResult({ verdict: r.verdict, heard: r.best, expected: ex.kind === "fill" ? ex.answer : ex.full });
     setCounted(true);
-    setStats((s) => recordResult(s, r.verdict === "correct"));
+    setStats((s) => recordResult(s, r.verdict));
   }, [ex, counted]);
 
   const stt = useSpeechToText(check);
@@ -73,7 +73,11 @@ export default function DrillScreen() {
   const METHOD_LABEL = { speak: "Responde hablando", type: "Responde escribiendo", choose: "Elige una opción" } as const;
   const onMic = () => (stt.status === "listening" ? stt.stop() : (stopSpeech(), stt.start()));
   const sttInfo = sttMessage(stt.status);
-  const accuracy = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
+  const level = levelOf(stats.xp);
+  const xpInLevel = stats.xp % XP_PER_LEVEL;
+  const goalPct = Math.min(stats.today / DAILY_GOAL, 1);
+  const roundDone = stats.round.length === ROUND_SIZE;
+  const roundScore = stats.round.filter((r) => r === "correct").length;
   const vColor = result ? (result.verdict === "correct" ? colors.affirmative : result.verdict === "close" ? colors.warning : colors.negative) : colors.ink;
   const vBg = result ? (result.verdict === "correct" ? colors.affirmativeBg : result.verdict === "close" ? colors.orangeBg : colors.negativeBg) : colors.card;
 
@@ -87,10 +91,34 @@ export default function DrillScreen() {
         <Text style={styles.title}>Practice</Text>
         <View style={styles.spacer} />
       </View>
-      <View style={styles.statsRow}>
-        <View style={styles.stat} testID="stat-streak"><Ionicons name="flame" size={16} color={colors.orange} /><Text style={styles.statText}>{`Racha ${stats.streak}`}</Text></View>
-        <View style={styles.stat} testID="stat-correct"><Ionicons name="checkmark-circle" size={16} color={colors.affirmative} /><Text style={styles.statText}>{`${stats.correct}/${stats.total} · ${accuracy}%`}</Text></View>
-        <View style={styles.stat} testID="stat-best"><Ionicons name="trophy" size={16} color={colors.purple} /><Text style={styles.statText}>{`Mejor ${stats.best}`}</Text></View>
+      <View style={styles.progress} testID="progress-panel">
+        <View style={styles.progRow}>
+          <View style={styles.levelBadge}><Text style={styles.levelNum} testID="level-number">{level}</Text></View>
+          <View style={styles.flex}>
+            <Text style={styles.levelTitle}>{`Nivel ${level} · ${levelTitle(level)}`}</Text>
+            <View style={styles.bar}><View style={[styles.barFill, { width: `${xpInLevel}%`, backgroundColor: colors.purple }]} /></View>
+            <Text style={styles.progSmall} testID="xp-text">{`${xpInLevel}/${XP_PER_LEVEL} XP para el nivel ${level + 1}`}</Text>
+          </View>
+          <View style={styles.streakBox} testID="stat-streak">
+            <Ionicons name="flame" size={18} color={colors.orange} />
+            <Text style={styles.streakNum}>{stats.streak}</Text>
+          </View>
+        </View>
+        <View style={styles.progRow}>
+          <Ionicons name={goalPct >= 1 ? "trophy" : "flag"} size={16} color={goalPct >= 1 ? colors.orange : colors.affirmative} />
+          <View style={styles.flex}>
+            <View style={styles.bar}><View style={[styles.barFill, { width: `${goalPct * 100}%`, backgroundColor: colors.affirmative }]} /></View>
+          </View>
+          <Text style={styles.progSmall} testID="daily-goal">{goalPct >= 1 ? "¡Meta diaria cumplida!" : `Meta de hoy ${stats.today}/${DAILY_GOAL}`}</Text>
+        </View>
+        <View style={styles.dots} testID="round-dots">
+          <Text style={styles.progSmall}>{`Ronda ${stats.roundsDone + (roundDone ? 0 : 1)}`}</Text>
+          {Array.from({ length: ROUND_SIZE }).map((_, i) => {
+            const r = stats.round[i];
+            const bg = r === "correct" ? colors.affirmative : r === "close" ? colors.warning : r === "wrong" ? colors.negative : colors.border;
+            return <View key={i} style={[styles.dot, { backgroundColor: bg }]} />;
+          })}
+        </View>
       </View>
 
       {/* Topic chips (sticky) */}
@@ -117,7 +145,11 @@ export default function DrillScreen() {
             <View style={styles.tag}><Text style={styles.tagText} testID="exercise-tag">{ex.tag}</Text></View>
             <Text style={styles.kind}>{ex.kind === "fill" ? "Completar" : "Pronunciar"}</Text>
           </View>
-          <Text style={styles.instruction}>{ex.instruction}</Text>
+          <View style={styles.taskBox} testID="exercise-task">
+            <Text style={styles.taskLabel}>TU TAREA</Text>
+            <Text style={styles.instruction} testID="exercise-instruction">{ex.instruction}</Text>
+            {ex.blankLabel ? <Text style={styles.blankLabel} testID="exercise-blank-label">{`El hueco ___ es: ${ex.blankLabel}`}</Text> : null}
+          </View>
           <View style={styles.methodPill} testID="answer-method"><Ionicons name={method === "speak" ? "mic" : method === "type" ? "create" : "list"} size={14} color={colors.purple} /><Text style={styles.methodText}>{METHOD_LABEL[method]}</Text></View>
 
           {ex.kind === "fill" ? (
@@ -202,9 +234,17 @@ export default function DrillScreen() {
           </Animated.View>
         ) : null}
 
-        <Pressable testID="next-exercise-button" onPress={() => next()} style={styles.nextBtn}>
+        {roundDone && result ? (
+          <View style={styles.roundCard} testID="round-complete">
+            <Ionicons name={roundScore >= 8 ? "trophy" : roundScore >= 5 ? "ribbon" : "fitness"} size={36} color={colors.orange} />
+            <Text style={styles.roundTitle}>{`¡Ronda completada! ${roundScore}/${ROUND_SIZE}`}</Text>
+            <Text style={styles.roundMsg}>{roundScore >= 8 ? "¡Excelente! Dominas este tema." : roundScore >= 5 ? "¡Bien! Un poco más de práctica y lo dominas." : "Sigue practicando, cada ronda suma XP."}</Text>
+            <Text style={styles.progSmall}>{`Mejor ronda: ${stats.bestRound}/${ROUND_SIZE}`}</Text>
+          </View>
+        ) : null}
+        <Pressable testID="next-exercise-button" onPress={() => { if (roundDone) setStats((st) => startNewRound(st)); next(); }} style={styles.nextBtn}>
           <Ionicons name="shuffle" size={18} color={colors.onBrand} />
-          <Text style={styles.nextText}>Siguiente ejercicio</Text>
+          <Text style={styles.nextText}>{roundDone && result ? "Nueva ronda" : "Siguiente ejercicio"}</Text>
         </Pressable>
       </KeyboardAwareScrollView>
     </LinearGradient>
@@ -239,7 +279,25 @@ const useStyles = makeStyles((c) => {
     tag: { backgroundColor: c.purpleBg, paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.pill },
     tagText: { fontFamily: fonts.extrabold, fontSize: 12, color: c.purple },
     kind: { fontFamily: fonts.bold, fontSize: 12, color: c.inkSoft },
-    instruction: { fontFamily: fonts.bold, fontSize: 14, color: c.inkSoft, marginTop: spacing.sm },
+    taskBox: { marginTop: spacing.sm, backgroundColor: c.purpleBg, borderRadius: radius.md, padding: spacing.sm + 4, borderLeftWidth: 4, borderLeftColor: c.purple },
+    taskLabel: { fontFamily: fonts.extrabold, fontSize: 11, letterSpacing: 1, color: c.purple },
+    instruction: { fontFamily: fonts.extrabold, fontSize: 17, color: c.ink, marginTop: 2 },
+    blankLabel: { fontFamily: fonts.bold, fontSize: 14, color: c.purple, marginTop: 4 },
+    progress: { marginHorizontal: spacing.md, marginTop: spacing.sm, backgroundColor: c.card, borderRadius: radius.lg, padding: spacing.sm + 4, gap: 8, ...shadow },
+    progRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    levelBadge: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.purple, alignItems: "center", justifyContent: "center" },
+    levelNum: { fontFamily: fonts.extrabold, fontSize: 18, color: c.onBrand },
+    levelTitle: { fontFamily: fonts.extrabold, fontSize: 14, color: c.ink },
+    bar: { height: 8, borderRadius: 4, backgroundColor: c.tabTrack, overflow: "hidden", marginTop: 4 },
+    barFill: { height: 8, borderRadius: 4 },
+    progSmall: { fontFamily: fonts.bold, fontSize: 11, color: c.inkSoft, marginTop: 2 },
+    streakBox: { alignItems: "center", backgroundColor: c.orangeBg, borderRadius: radius.md, paddingHorizontal: 10, paddingVertical: 4 },
+    streakNum: { fontFamily: fonts.extrabold, fontSize: 14, color: c.orange },
+    dots: { flexDirection: "row", alignItems: "center", gap: 5 },
+    dot: { width: 14, height: 14, borderRadius: 7 },
+    roundCard: { backgroundColor: c.card, borderRadius: radius.lg, padding: spacing.md, alignItems: "center", gap: 4, borderWidth: 2, borderColor: c.orange },
+    roundTitle: { fontFamily: fonts.extrabold, fontSize: 20, color: c.ink },
+    roundMsg: { fontFamily: fonts.semibold, fontSize: 14, color: c.inkSoft, textAlign: "center" },
     sentence: { fontFamily: fonts.extrabold, fontSize: 22, color: c.ink, marginTop: spacing.sm, lineHeight: 30 },
     blank: { color: c.purple, textDecorationLine: "underline" },
     hint: { fontFamily: fonts.semibold, fontStyle: "italic", fontSize: 14, color: c.inkSoft, marginTop: 4 },
