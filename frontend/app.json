@@ -9,14 +9,21 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.calcuverbs.advanced"
+      "bundleIdentifier": "com.calcuverbs.advanced",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Di tus respuestas en voz alta para practicar",
+        "NSSpeechRecognitionUsageDescription": "Revisa tu pronunciaci\u00f3n mientras practicas"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.calcuverbs.advanced"
+      "package": "com.calcuverbs.advanced",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -41,10 +48,15 @@
       "expo-status-bar",
       "@react-native-vector-icons/ionicons",
       [
-        "expo-audio",
+        "expo-speech-recognition",
         {
-          "microphonePermission": false,
-          "recordAudioAndroid": false
+          "microphonePermission": "Di tus respuestas en voz alta para practicar",
+          "speechRecognitionPermission": "Revisa tu pronunciaci\u00f3n mientras practicas",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox",
+            "com.google.android.tts",
+            "com.samsung.android.bixby.agent"
+          ]
         }
       ]
     ],

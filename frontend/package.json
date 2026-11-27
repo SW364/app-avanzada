@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "preinstall": "./scripts/cmd-guard.js --preinstall",
+    "preinstall": "node ./scripts/cmd-guard.js --preinstall",
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
@@ -12,7 +12,7 @@
     "lint": "expo lint"
   },
   "dependencies": {
-    "@expo/metro-runtime": "58.0.15",
+    "@expo/metro-runtime": "58.0.17",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-vector-icons/ionicons": "14.0.0",
     "@tanstack/react-query": "5.102.8",
@@ -30,6 +30,7 @@
     "expo-linking": "58.0.14",
     "expo-router": "58.0.25",
     "expo-secure-store": "58.0.2",
+    "expo-speech": "~58.0.4",
     "expo-splash-screen": "58.0.11",
     "expo-status-bar": "58.0.4",
     "expo-symbols": "58.0.4",
@@ -66,6 +67,5 @@
     "**/@istanbuljs/load-nyc-config/js-yaml": "3.15.2",
     "shell-quote": "1.11.0"
   },
-  "private": true,
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "private": true
 }
