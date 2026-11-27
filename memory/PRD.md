@@ -67,6 +67,11 @@ Implement the data structure and conjugation modules for: 1) VOZ PASIVA (M1.A mo
 - Fix: app.json extra.backendUrl fallback (read via expo-constants), 2 retries, download with a streaming fallback, prefetch after Generar
 - The fallback currently points to the preview URL; after Publish it should be switched to the production URL
 
+## Update: Practice (local) (June 2026)
+- New "Practice" button in the main menu → /drill: topics (Todos, Passive AA/AB, BAT MM1.B, BAT MM2–MM5, Gerundios & Ain't, Regulares/Irregulares), modes Mixto/Completar/Pronunciar, local infinite exercise generator (src/practice/generator.ts), local evaluation with contractions/variants (src/practice/evaluate.ts), streak/correct-answer stats in device storage
+- Voice: TTS with expo-speech (user's tts.ts, device voice); STT with expo-speech-recognition (src/utils/stt.ts), on-device when available, friendly messages and an Open Settings button when the mic is blocked
+- The user installs the native packages locally (npx expo install) and builds with EAS; the Emergent preview cannot bundle these modules
+
 ## Backlog
 - P1: Continuous chapters for Voz Pasiva (Mm5–8.AB: being / been being)
 - P1: BAT appendices (gerund, "Ain't"); the 160-verb list from the BAT manual

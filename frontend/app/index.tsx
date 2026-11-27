@@ -14,14 +14,15 @@ type MenuItem = {
   key: string;
   label: string;
   sub: string;
-  icon: "grid" | "play-circle" | "create";
+  icon: "grid" | "play-circle" | "create" | "mic";
   href: Href;
-  color: "blue" | "coral" | "teal";
-  bg: "blueBg" | "coralBg" | "tealBg";
+  color: "blue" | "coral" | "teal" | "purple";
+  bg: "blueBg" | "coralBg" | "tealBg" | "purpleBg";
 };
 
 const ITEMS: MenuItem[] = [
   { key: "modules", label: "Módulos", sub: "Voz Pasiva y Modo BAT", icon: "grid", href: "/modules", color: "blue", bg: "blueBg" },
+  { key: "practice", label: "Practice", sub: "Ejercicios con voz y micrófono", icon: "mic", href: "/drill", color: "purple", bg: "purpleBg" },
   { key: "videos", label: "Videos", sub: "Clases y explicaciones", icon: "play-circle", href: "/videos", color: "coral", bg: "coralBg" },
   { key: "notes", label: "Mis Notas", sub: "Tus apuntes personales", icon: "create", href: "/notes", color: "teal", bg: "tealBg" },
 ];
