@@ -119,7 +119,9 @@ export default function PracticeScreen() {
             <Text style={styles.kicker}>{`${m.title.toUpperCase()} · ${options[opt].code}`}</Text>
             <Text style={styles.headerTitle} testID="practice-title">{practice.title}</Text>
           </View>
-          <View style={styles.headerSpacer} />
+          <Pressable style={styles.roundBtn} testID="module-notes-button" onPress={() => router.push(`/notes?module=${practice.id}`)}>
+            <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+          </Pressable>
         </View>
 
         {/* Subject carousel */}

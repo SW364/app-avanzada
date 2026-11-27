@@ -22,6 +22,7 @@ export type Exercise = {
   kind: ExerciseKind;
   tag: string;            // chapter code shown on the card
   instruction: string;
+  blankLabel?: string;    // fill: what exactly goes in the blank
   before?: string;        // fill: text before the blank
   after?: string;         // fill: text after the blank
   target?: string;        // say: sentence to repeat
@@ -81,7 +82,7 @@ const nextId = () => `ex-${Date.now()}-${n++}`;
 // Build a fill/say exercise from one conjugation; the blank is the highlighted auxiliary chain.
 function fromConjugation(opts: {
   module: "passive" | "bat"; mode: "tense" | "modal"; key: string; verb: Verb; person: Person; form: Form;
-  tag: string; note: string; distractorKeys: string[]; kind: ExerciseKind;
+  tag: string; note: string; distractorKeys: string[]; kind: ExerciseKind; what: string;
 }): Exercise {
   const base = { module: opts.module, mode: opts.mode, key: opts.key, verb: opts.verb, person: opts.person, form: opts.form };
   const c = conjugate(base);
@@ -89,7 +90,7 @@ function fromConjugation(opts: {
   const accepted = [full, ...(c.enAlt ? [c.enAlt] : [])];
   if (opts.kind === "say") {
     return {
-      id: nextId(), kind: "say", tag: opts.tag, instruction: "Escucha y repite en voz alta",
+      id: nextId(), kind: "say", tag: opts.tag, instruction: "Escucha la frase y repítela en voz alta",
       target: full, hint: c.es, answer: full, accepted, full, note: opts.note,
     };
   }
@@ -105,7 +106,11 @@ function fromConjugation(opts: {
     .filter((t) => t && t.toLowerCase() !== answer.toLowerCase());
   const options = shuffle(uniq([answer, ...shuffle(uniq(wrong)).slice(0, 3)]));
   return {
-    id: nextId(), kind: "fill", tag: opts.tag, instruction: "Completa la frase",
+    id: nextId(), kind: "fill", tag: opts.tag,
+    instruction: opts.form === "interrogative"
+      ? "Pregunta: escribe la palabra que va al inicio"
+      : `Frase ${opts.form === "negative" ? "negativa" : "afirmativa"}: escribe el auxiliar que falta`,
+    blankLabel: opts.what,
     before, after, hint: c.es, answer, accepted: [answer], options, full, note: opts.note,
   };
 }
@@ -115,6 +120,7 @@ function passive(keys: TenseKey[], kind: ExerciseKind): Exercise {
   return fromConjugation({
     module: "passive", mode: "tense", key, verb: pick(M1), person: pick(PERSONS), form: pick(FORMS),
     tag: CODE[key], note: TENSE_NOTE[key], distractorKeys: keys, kind,
+    what: (() => { const ch = MODULES.passive.chapters.find((c) => c.key === key)!; return `${ch.title}: ${ch.formula.replace(" + Pasado Participio", "")}`; })(),
   });
 }
 
@@ -125,6 +131,7 @@ function batModal(kind: ExerciseKind): Exercise {
     module: "bat", mode: "modal", key, verb: pick(M1), person: pick(PERSONS), form: pick(FORMS),
     tag: "MM1.B", note: "MM1.B · Modal + be able to + verbo. Nunca se combina can / could con be able to.",
     distractorKeys: modals, kind,
+    what: (() => { const m = MODULES.bat.modals.find((x) => x.key === key)!; return `Modal + be able to (${m.label} = ${m.es})`; })(),
   });
   // Typical mistake as a distractor: "can be able to".
   if (ex.kind === "fill" && ex.options && ex.options.length >= 4 && !ex.before?.match(/^(Can|Could)/)) {
@@ -138,6 +145,7 @@ function batTense(kind: ExerciseKind): Exercise {
   return fromConjugation({
     module: "bat", mode: "tense", key, verb: pick(M1), person: pick(PERSONS), form: pick(FORMS),
     tag: BAT_CODE[key], note: BAT_NOTE[key], distractorKeys: AA_KEYS, kind,
+    what: (() => { const ch = MODULES.bat.chapters.find((c) => c.key === key)!; return `${ch.title}: ${ch.formula.replace(" + Verbo en Infinitivo", "")}`; })(),
   });
 }
 
@@ -156,7 +164,7 @@ function gerundOrAint(kind: ExerciseKind): Exercise {
       return { id: nextId(), kind, tag: "Gerundio", instruction: "Escucha y repite en voz alta", target: full, hint: `${cap(verb.es)} (como actividad)`, answer: full, accepted: [full], full, note };
     }
     return {
-      id: nextId(), kind, tag: "Gerundio", instruction: "Completa con el gerundio correcto", before: "", after: ` ${tail}.`,
+      id: nextId(), kind, tag: "Gerundio", instruction: "Escribe el verbo en gerundio (-ing) que funciona como sujeto", blankLabel: `Gerundio de “${v}”`, before: "", after: ` ${tail}.`,
       hint: `Verbo: ${v} (${verb.es})`, answer: ing, accepted: [ing],
       options: shuffle([ing, ...shuffle(uniq([cap(v), cap(verb.past.split(" ")[0]), `To ${v}s`, `${cap(v)}s`]).filter((o) => o !== ing)).slice(0, 3)]), full, note,
     };
@@ -175,7 +183,7 @@ function gerundOrAint(kind: ExerciseKind): Exercise {
     return { id: nextId(), kind, tag: "Ain't", instruction: `Di la forma correcta de: “${sentence}”`, target: full, answer: full, accepted: [full], full, note };
   }
   return {
-    id: nextId(), kind, tag: "Ain't", instruction: `¿Qué significa ain't en: “${sentence}”?`, before: `${person.en} `,
+    id: nextId(), kind, tag: "Ain't", instruction: `Cambia “ain't” por su forma correcta: “${sentence}”`, blankLabel: "isn't / aren't / am not / hasn't / haven't", before: `${person.en} `,
     after: useBe ? ` ${adj}.` : ` ${verb.pp} it.`, answer, accepted: [answer, answer.replace("n't", " not")],
     options: shuffle([answer, ...shuffle(["isn't", "aren't", "hasn't", "haven't", "am not"].filter((o) => o !== answer)).slice(0, 3)]), full, note,
   };
@@ -197,7 +205,7 @@ function verbForms(kind: ExerciseKind): Exercise {
   const answer = which === "past" ? v.past.split(" / ")[0] : which === "pp" ? v.pp : ing;
   const options = shuffle(uniq([answer, v.en, v.past.split(" / ")[0], v.pp, ing, `${v.en}ed`])).filter((o) => o !== answer).slice(0, 3);
   return {
-    id: nextId(), kind, tag, instruction: `${label} de “${v.en}” (${v.es})`, before: `${v.en} → `, after: "",
+    id: nextId(), kind, tag, instruction: `Escribe el ${label.toLowerCase()} del verbo “${v.en}” (${v.es})`, blankLabel: label, before: `${v.en} → `, after: "",
     answer, accepted: v.past.includes(" / ") && which === "past" ? v.past.split(" / ") : [answer],
     options: shuffle([answer, ...options]), hint: forms.replace(answer, "___"), full: forms, note,
   };
