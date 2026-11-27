@@ -43,14 +43,14 @@ export default function DrillScreen() {
   useEffect(() => { loadStats().then(setStats); }, []);
   useEffect(() => subscribeSpeech((s) => setTts(s)), []);
 
+  const [chosen, setChosen] = useState<number | null>(null);
   const check = useCallback((heard: string[]) => {
+    if (counted) return; // only ONE answer per exercise
     const accepted = ex.kind === "fill" ? [...ex.accepted, ex.full] : ex.accepted;
     const r = evaluate(heard, accepted);
     setResult({ verdict: r.verdict, heard: r.best, expected: ex.kind === "fill" ? ex.answer : ex.full });
-    if (!counted) {
-      setCounted(true);
-      setStats((s) => recordResult(s, r.verdict === "correct"));
-    }
+    setCounted(true);
+    setStats((s) => recordResult(s, r.verdict === "correct"));
   }, [ex, counted]);
 
   const stt = useSpeechToText(check);
@@ -65,8 +65,12 @@ export default function DrillScreen() {
     setTyped("");
     setResult(null);
     setCounted(false);
+    setChosen(null);
   };
 
+  const method = ex.method ?? "choose";
+  const locked = counted;
+  const METHOD_LABEL = { speak: "Responde hablando", type: "Responde escribiendo", choose: "Elige una opción" } as const;
   const onMic = () => (stt.status === "listening" ? stt.stop() : (stopSpeech(), stt.start()));
   const sttInfo = sttMessage(stt.status);
   const accuracy = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
@@ -114,6 +118,7 @@ export default function DrillScreen() {
             <Text style={styles.kind}>{ex.kind === "fill" ? "Completar" : "Pronunciar"}</Text>
           </View>
           <Text style={styles.instruction}>{ex.instruction}</Text>
+          <View style={styles.methodPill} testID="answer-method"><Ionicons name={method === "speak" ? "mic" : method === "type" ? "create" : "list"} size={14} color={colors.purple} /><Text style={styles.methodText}>{METHOD_LABEL[method]}</Text></View>
 
           {ex.kind === "fill" ? (
             <Text style={styles.sentence} testID="exercise-sentence">
@@ -133,30 +138,36 @@ export default function DrillScreen() {
           ) : null}
 
           {/* Touch options */}
-          {ex.kind === "fill" && ex.options ? (
+          {ex.kind === "fill" && method === "choose" && ex.options ? (
             <View style={styles.options}>
-              {ex.options.map((o, i) => (
-                <Pressable key={`${o}-${i}`} testID={`option-${i}`} onPress={() => check([o])}
-                  style={[styles.option, result && o === ex.answer && styles.optionRight]}>
-                  <Text style={[styles.optionText, result && o === ex.answer && styles.optionTextRight]}>{o}</Text>
-                </Pressable>
-              ))}
+              {ex.options.map((o, i) => {
+                const right = locked && o === ex.answer;
+                const wrongPick = locked && chosen === i && o !== ex.answer;
+                return (
+                  <Pressable key={`${o}-${i}`} testID={`option-${i}`} disabled={locked}
+                    onPress={() => { setChosen(i); check([o]); }}
+                    style={[styles.option, right && styles.optionRight, wrongPick && styles.optionWrong, locked && !right && !wrongPick && styles.optionDim]}>
+                    <Text style={[styles.optionText, right && styles.optionTextRight, wrongPick && styles.optionTextWrong]}>{o}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
           ) : null}
 
           {/* Type answer */}
-          {ex.kind === "fill" ? (
+          {ex.kind === "fill" && method === "type" ? (
             <View style={styles.typeRow}>
-              <TextInput testID="answer-input" value={typed} onChangeText={setTyped} placeholder="Escribe tu respuesta…"
+              <TextInput testID="answer-input" editable={!locked} value={typed} onChangeText={setTyped} placeholder="Escribe tu respuesta…"
                 placeholderTextColor={colors.inkSoft} style={styles.input} autoCapitalize="none" autoCorrect={false}
                 returnKeyType="done" onSubmitEditing={() => typed.trim() && check([typed])} />
-              <Pressable testID="check-button" onPress={() => typed.trim() && check([typed])} style={styles.checkBtn}>
+              <Pressable testID="check-button" disabled={locked} onPress={() => typed.trim() && check([typed])} style={[styles.checkBtn, locked && styles.optionDim]}>
                 <Ionicons name="checkmark" size={22} color={colors.onBrand} />
               </Pressable>
             </View>
           ) : null}
 
           {/* Microphone */}
+          {method === "speak" && !locked ? (<>
           <Pressable testID="mic-button" onPress={onMic} style={[styles.micBtn, stt.status === "listening" && styles.micActive]}>
             <Ionicons name={stt.status === "listening" ? "stop" : "mic"} size={24} color={colors.onBrand} />
             <Text style={styles.micText}>{stt.status === "listening" ? "Escuchando… toca para terminar" : ex.kind === "fill" ? "Decir la respuesta" : "Repetir en voz alta"}</Text>
@@ -172,6 +183,7 @@ export default function DrillScreen() {
               ) : null}
             </View>
           ) : null}
+          </>) : null}
         </Animated.View>
 
         {/* Feedback */}
@@ -187,11 +199,6 @@ export default function DrillScreen() {
               <Ionicons name="bulb" size={16} color={colors.orange} />
               <Text style={styles.noteText} testID="feedback-note">{ex.note}</Text>
             </View>
-            {result.verdict !== "correct" ? (
-              <Pressable testID="retry-button" onPress={() => { setResult(null); setTyped(""); stt.reset(); }} style={styles.retryBtn}>
-                <Text style={styles.retryText}>Reintentar</Text>
-              </Pressable>
-            ) : null}
           </Animated.View>
         ) : null}
 
@@ -243,6 +250,11 @@ const useStyles = makeStyles((c) => {
     optionRight: { backgroundColor: c.affirmativeBg },
     optionText: { fontFamily: fonts.bold, fontSize: 15, color: c.ink, textAlign: "center" },
     optionTextRight: { color: c.affirmative },
+    optionWrong: { backgroundColor: c.negativeBg },
+    optionTextWrong: { color: c.negative },
+    optionDim: { opacity: 0.5 },
+    methodPill: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", marginTop: 6, backgroundColor: c.purpleBg, borderRadius: radius.pill, paddingHorizontal: 10, height: 26 },
+    methodText: { fontFamily: fonts.bold, fontSize: 12, color: c.purple },
     typeRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
     input: { flex: 1, height: 48, borderRadius: radius.md, backgroundColor: c.surfaceTertiary, paddingHorizontal: 12, fontFamily: fonts.semibold, fontSize: 15, color: c.ink },
     checkBtn: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: c.affirmative, alignItems: "center", justifyContent: "center" },
@@ -261,8 +273,6 @@ const useStyles = makeStyles((c) => {
     fbFull: { fontFamily: fonts.semibold, fontSize: 14, color: c.ink, marginTop: 4 },
     noteBox: { flexDirection: "row", gap: 6, marginTop: spacing.sm, backgroundColor: c.card, borderRadius: radius.md, padding: spacing.sm },
     noteText: { flex: 1, fontFamily: fonts.semibold, fontSize: 13, color: c.ink },
-    retryBtn: { alignSelf: "flex-start", marginTop: spacing.sm, backgroundColor: c.card, borderRadius: radius.pill, paddingHorizontal: 16, height: 40, justifyContent: "center" },
-    retryText: { fontFamily: fonts.extrabold, fontSize: 14, color: c.ink },
     nextBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 54, borderRadius: radius.pill, backgroundColor: c.primary, ...shadow },
     nextText: { fontFamily: fonts.extrabold, fontSize: 16, color: c.onBrand },
   };

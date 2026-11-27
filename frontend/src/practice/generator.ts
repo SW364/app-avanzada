@@ -5,6 +5,7 @@ import { PERSONS, conjugate, joinSegments, type Form, type Person } from "@/src/
 
 export type TopicId = "all" | "pv-aa" | "pv-ab" | "bat-modal" | "bat-tense" | "gerund-aint" | "verbs";
 export type ExerciseKind = "fill" | "say";
+export type AnswerMethod = "speak" | "type" | "choose";
 
 export const TOPICS: { id: TopicId; label: string }[] = [
   { id: "all", label: "Todos" },
@@ -30,6 +31,7 @@ export type Exercise = {
   options?: string[];     // fill: touch options
   full: string;           // full English sentence (for listening)
   note: string;           // short grammar note
+  method?: AnswerMethod;  // the ONLY way to answer this exercise (always set by generateExercise)
 };
 
 const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
@@ -103,7 +105,7 @@ function fromConjugation(opts: {
     .filter((t) => t && t.toLowerCase() !== answer.toLowerCase());
   const options = shuffle(uniq([answer, ...shuffle(uniq(wrong)).slice(0, 3)]));
   return {
-    id: nextId(), kind: "fill", tag: opts.tag, instruction: "Completa la frase (habla, escribe o elige)",
+    id: nextId(), kind: "fill", tag: opts.tag, instruction: "Completa la frase",
     before, after, hint: c.es, answer, accepted: [answer], options, full, note: opts.note,
   };
 }
@@ -234,7 +236,9 @@ export function generateExercise(topic: TopicId, kind: ExerciseKind | "mixed", p
       const t = topic === "all" ? pick(Object.keys(GENERATORS) as Exclude<TopicId, "all">[]) : topic;
       ex = GENERATORS[t](k);
     }
+    // Fill exercises get one random answer method; pronunciation is always spoken.
+    ex.method = ex.kind === "say" ? "speak" : pick<AnswerMethod>(["speak", "type", "choose"]);
     if (!previous || ex.full !== previous.full) return ex; // never repeat the same one immediately
   }
-  return GENERATORS["pv-aa"]("fill");
+  return { ...GENERATORS["pv-aa"]("fill"), method: "choose" };
 }
